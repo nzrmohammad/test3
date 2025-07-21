@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اطلاعات اشتراک</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body x-data="app()">
+    <div class="container">
+        <header class="header">
+            <div class="logo">اطلاعات<span>اشتراک</span></div>
+            <div class="settings-card">
+                <div class="settings-list">
+                    <div class="setting-item" @click="toggleTheme()">
+                        <div class="setting-icon" style="background-color: var(--accent-purple);">
+                            <i class="fas" :class="isLight ? 'fa-sun' : 'fa-moon'"></i>
+                        </div>
+                        <span class="setting-label">تغییر تم</span>
+                    </div>
+                    <a :href="supportLink" target="_blank" class="setting-item" style="text-decoration: none;">
+                        <div class="setting-icon" style="background-color: var(--accent-green);">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <span class="setting-label">پشتیبانی</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <div class="input-section">
+            <input type="text" x-model="uuidInput" @keydown.enter="fetchData()" placeholder="شناسه (UUID) خود را اینجا وارد کنید...">
+            <button @click="fetchData()" :disabled="isLoading">
+                <span x-show="!isLoading">بررسی</span>
+                <div x-show="isLoading" class="spinner-small"></div>
+            </button>
+        </div>
+
+        <div x-show="isLoading" class="loading-state">در حال بارگذاری اطلاعات، لطفا شکیبا باشید...</div>
+        <div x-show="error" x-text="error" class="error-state"></div>
+        
+        <div x-show="user.uuid" x-cloak>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-user card-icon"></i><span>نام کاربری</span></div>
+                    <div class="card-value" x-text="user.name"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-question-circle card-icon"></i><span>وضعیت</span></div>
+                    <span class="status-badge" :class="user.is_active ? 'active' : 'inactive'" x-text="user.is_active ? 'فعال' : 'غیرفعال'"></span>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-birthday-cake card-icon"></i><span>هدیه تولد</span></div>
+                    <div class="card-value" x-text="getBirthdayText()"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-history card-icon"></i><span>سابقه پرداخت</span></div>
+                    <div class="card-value-small">
+                        <span x-text="getPaymentText()"></span><br>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);" x-text="user.payment_history?.last_payment_date || 'اولین خرید شماست!'"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card traffic-card">
+                 <div class="card-header">
+                    <i class="fas fa-chart-pie card-icon"></i>
+                    <span class="card-label">ترافیک کل</span>
+                 </div>
+                 <div class="card-value" x-text="`${user.current_usage_GB.toFixed(2)} / ${user.usage_limit_GB.toFixed(2)} GB`"></div>
+                 <div class="progress-container">
+                    <div class="progress-bar" :style="`width: ${user.usage_percentage}%;`"></div>
+                    <div class="progress-text" x-text="`${user.usage_percentage}%`"></div>
+                 </div>
+            </div>
+
+            <div class="server-cards-grid">
+                <template x-if="user.hiddify">
+                    <div class="card server-card">
+                        <div class="server-title">
+                            <span class="flag-icon">🇩🇪</span>
+                            <h4>سرور آلمان</h4>
+                        </div>
+                        <div class="server-info-row"><span>حجم:</span> <span x-text="`${user.hiddify.current_usage_GB.toFixed(2)} / ${user.hiddify.usage_limit_GB.toFixed(2)} GB`"></span></div>
+                        <div class="server-info-row"><span>مصرف امروز:</span> <span x-text="user.hiddify.daily_usage"></span></div>
+                        <div class="server-info-row"><span>آخرین اتصال:</span> <span x-text="user.hiddify.last_online || 'هرگز'"></span></div>
+                    </div>
+                </template>
+                <template x-if="user.marzban">
+                     <div class="card server-card">
+                        <div class="server-title">
+                            <span class="flag-icon">🇫🇷</span>
+                            <h4>سرور فرانسه</h4>
+                        </div>
+                        <div class="server-info-row"><span>حجم:</span> <span x-text="`${user.marzban.current_usage_GB.toFixed(2)} / ${user.marzban.usage_limit_GB.toFixed(2)} GB`"></span></div>
+                        <div class="server-info-row"><span>مصرف امروز:</span> <span x-text="user.marzban.daily_usage"></span></div>
+                        <div class="server-info-row"><span>آخرین اتصال:</span> <span x-text="user.marzban.last_online || 'هرگز'"></span></div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="additional-sections">
+                <div class="advanced-card">
+                    <div class="advanced-card-header" @click="toggleSection('chart')">
+                        <div class="advanced-card-title"><i class="fas fa-chart-line advanced-card-icon"></i><span>نمودار مصرف ۲۴ ساعت گذشته</span></div>
+                        <i class="fas" :class="openSection === 'chart' ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </div>
+                    <div class="advanced-card-content" x-show="openSection === 'chart'" x-transition><canvas id="usageChart"></canvas></div>
+                </div>
+
+                <div class="advanced-card">
+                    <div class="advanced-card-header" @click="toggleSection('links')">
+                        <div class="advanced-card-title"><i class="fas fa-link advanced-card-icon"></i><span>لینک اشتراک</span></div>
+                        <i class="fas" :class="openSection === 'links' ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </div>
+                    <div class="advanced-card-content" x-show="openSection === 'links'" x-transition>
+                        <div class="config-link">
+                            <div class="config-link-name">لینک اشتراک هوشمند</div>
+                            <div class="config-link-buttons">
+                                <button class="config-link-copy-icon" @click.stop="copyToClipboard(user.subscriptionUrl)" title="کپی"><i class="fas fa-copy"></i></button>
+                                <button class="config-link-qr-btn" @click.stop="openQr(user.subscriptionUrl, 'لینک اشتراک')">QR کد</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="advanced-card">
+                    <div class="advanced-card-header" @click="toggleSection('plans')">
+                        <div class="advanced-card-title"><i class="fas fa-rocket advanced-card-icon"></i><span>مشاهده و خرید سرویس</span></div>
+                        <i class="fas" :class="openSection === 'plans' ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </div>
+                    <div class="advanced-card-content" x-show="openSection === 'plans'" x-transition>
+                        <div class="plan-selector">
+                            <button @click="fetchServicePlans('combined')" :class="{'active': activePlanType === 'combined'}">🚀 ترکیبی</button>
+                            <button @click="fetchServicePlans('germany')" :class="{'active': activePlanType === 'germany'}">🇩🇪 آلمان</button>
+                            <button @click="fetchServicePlans('france')" :class="{'active': activePlanType === 'france'}">🇫🇷 فرانسه</button>
+                        </div>
+                        <div x-show="plansLoading" class="loading-state-small">درحال بارگذاری پلن‌ها...</div>
+                        <div class="plans-grid">
+                            <template x-for="plan in servicePlans" :key="plan.name">
+                                <div class="plan-card">
+                                    <h4 x-text="plan.name"></h4>
+                                    <ul>
+                                        <template x-if="plan.total_volume"> <li x-text="`حجم کل: ${plan.total_volume}`"></li> </template>
+                                        <template x-if="plan.volume_de"> <li x-text="`آلمان: ${plan.volume_de}`"></li> </template>
+                                        <template x-if="plan.volume_fr"> <li x-text="`فرانسه: ${plan.volume_fr}`"></li> </template>
+                                        <li x-text="`مدت: ${plan.duration}`"></li>
+                                    </ul>
+                                    <a :href="supportLink" target="_blank" class="contact-admin-btn">تماس با پشتیبانی</a>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="qrVisible" x-cloak class="qr-modal" @click.self="qrVisible = false">
+                <div class="qr-content" @click.stop>
+                    <h4 class="qr-title" x-text="qrTitle"></h4>
+                    <canvas id="qr-canvas" class="qr-image"></canvas>
+                    <div class="qr-buttons">
+                        <button class="copy-btn" @click="copyToClipboard(currentLink)">کپی لینک</button>
+                        <button class="close-btn" @click="qrVisible = false">بستن</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>با سپاس از اعتماد شما</footer>
+    </div>
+    
+    <script>
+        // Pass the support link from Flask to JavaScript to be used in Alpine.js
+        const supportLink = "{{ support_link|safe }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

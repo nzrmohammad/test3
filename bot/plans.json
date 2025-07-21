@@ -1,0 +1,78 @@
+[
+    {
+        "name": "Bronze 🥉",
+        "type": "combined",
+        "total_volume": "۳۰ گیگابایت",
+        "volume_de": "۲۰ گیگابایت (🇩🇪)",
+        "volume_fr": "۱۰ گیگابایت (🇫🇷)",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "Silver 🥈",
+        "type": "combined",
+        "total_volume": "۵۰ گیگابایت",
+        "volume_de": "۳۵ گیگابایت (🇩🇪)",
+        "volume_fr": "۱۵ گیگابایت (🇫🇷)",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "Gold 🥇",
+        "type": "combined",
+        "total_volume": "۸۰ گیگابایت",
+        "volume_de": "۵۰ گیگابایت (🇩🇪)",
+        "volume_fr": "۳۰ گیگابایت (🇫🇷)",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "Platinum ✨",
+        "type": "combined",
+        "total_volume": "۱۲۰ گیگابایت",
+        "volume_de": "۸۰ گیگابایت (🇩🇪)",
+        "volume_fr": "۴۰ گیگابایت (🇫🇷)",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "Diamond 💎",
+        "type": "combined",
+        "total_volume": "۲۰۰ گیگابایت",
+        "volume_de": "۱۲۰ گیگابایت (🇩🇪)",
+        "volume_fr": "۸۰ گیگابایت (🇫🇷)",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "DE Economy 🇩🇪",
+        "type": "germany",
+        "volume_de": "۲۰ گیگابایت",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "DE Standard 🇩🇪",
+        "type": "germany",
+        "volume_de": "۳۰ گیگابایت",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "DE Pro 🇩🇪",
+        "type": "germany",
+        "volume_de": "۵۰ گیگابایت",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "FR Economy 🇫🇷",
+        "type": "france",
+        "volume_de": "۲۰ گیگابایت",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "FR Standard 🇫🇷",
+        "type": "france",
+        "volume_de": "۳۰ گیگابایت",
+        "duration": "۳۰ روز"
+    },
+    {
+        "name": "FR Pro 🇫🇷",
+        "type": "france",
+        "volume_de": "۵۰ گیگابایت",
+        "duration": "۳۰ روز"
+    }
+]
