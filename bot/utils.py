@@ -3,12 +3,12 @@
 import re
 import json
 import logging
-import os  # ماژول os برای کار با مسیرها اضافه شد
+import os
 from datetime import datetime, date, timedelta
 from typing import Union, Optional
 import pytz
 import jdatetime
-from config import PROGRESS_COLORS
+from .config import PROGRESS_COLORS
 
 logger = logging.getLogger(__name__)
 bot = None
@@ -23,18 +23,11 @@ def initialize_utils(b_instance):
 # تابع اصلاح شده و هوشمند
 # ==============================================================================
 def load_service_plans():
-    """
-    پلن‌های سرویس را از فایل plans.json با استفاده از یک مسیر امن و مطلق بارگذاری می‌کند.
-    این تابع تضمین می‌کند که فایل هم توسط ربات و هم توسط وب‌اپ پیدا شود.
-    """
     try:
-        # مسیر پوشه‌ای که این فایل (utils.py) در آن قرار دارد را پیدا می‌کند
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        # از مسیر فعلی، یک پوشه به بالا می‌رود تا به ریشه پروژه برسد
         project_root = os.path.dirname(script_dir)
-        # مسیر کامل و دقیق فایل plans.json را می‌سازد
-        json_path = os.path.join(project_root, 'plans.json')
-
+        json_path = os.path.join(script_dir, 'plans.json')
+        
         with open(json_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:

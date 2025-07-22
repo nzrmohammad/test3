@@ -27,10 +27,10 @@ class MarzbanAPIHandler:
         return session
 
     def reload_uuid_maps(self) -> bool:
-        """Loads or reloads the UUID-to-Marzban-Username mapping from the JSON file."""
-        # FIX: Define the path inside the function to avoid NameError
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        uuid_map_path = os.path.join(current_dir, 'uuid_to_marzban_user.json')
+        # current_dir = os.path.dirname(os.path.abspath(__file__))
+        # uuid_map_path = os.path.join(current_dir, 'uuid_to_marzban_user.json')
+        uuid_map_path = '/opt/custom_bot/bot/uuid_to_marzban_user.json' # <--- این خط را جایگزین کنید
+
         try:
             with open(uuid_map_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)

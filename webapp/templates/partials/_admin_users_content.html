@@ -1,0 +1,60 @@
+<div x-show="activeView === 'users'">
+    <div class="advanced-card">
+        <div class="advanced-card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                <h3 class="advanced-card-title" style="padding: 0; border: none;">
+                    <i class="fas fa-users advanced-card-icon"></i>
+                    <span>لیست کاربران</span>
+                </h3>
+                <div class="input-section" style="margin-bottom: 0; width: 50%;">
+                    <input type="text" x-model="searchText" @keydown.enter="fetchUsers()" placeholder="جستجو بر اساس نام یا UUID...">
+                    <button @click="openCreateUserModal()" style="min-width: 120px;">کاربر جدید +</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="advanced-card-content" style="padding: 0;">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>نام</th>
+                        <th>وضعیت</th>
+                        <th>مصرف</th>
+                        <th>تاریخ انقضا</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="user in filteredUsers" :key="user.uuid">
+                        <tr>
+                            <td x-text="user.name"></td>
+                            <td><span class="status-badge" :class="user.status === 'active' ? 'active' : 'inactive'" x-text="user.status_farsi"></span></td>
+                            <td x-text="`${(user.current_usage_GB || 0).toFixed(2)} / ${(user.usage_limit_GB || 0).toFixed(2)} GB`" style="direction: ltr; text-align: right;"></td>
+                            <td x-text="user.expiry_date_farsi"></td>
+                            <td class="actions">
+                                <button @click="editUser(user)" class="action-btn edit"><i class="fas fa-edit"></i></button>
+                                <button @click="deleteUser(user.uuid)" class="action-btn delete"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </template>
+                    <template x-if="filteredUsers.length === 0">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px;">کاربری یافت نشد.</td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .users-table { width: 100%; border-collapse: collapse; }
+    .users-table th, .users-table td { padding: 12px 15px; text-align: right; border-bottom: 1px solid var(--border-color); }
+    .users-table th { background-color: var(--bg-secondary); font-weight: 500; }
+    .users-table tbody tr:hover { background-color: var(--bg-secondary); }
+    .users-table .actions { display: flex; gap: 10px; }
+    .action-btn { background: none; border: 1px solid var(--border-color); color: var(--text-secondary); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+    .action-btn.edit:hover { background-color: var(--accent-blue); color: white; }
+    .action-btn.delete:hover { background-color: var(--accent-red); color: white; }
+</style>

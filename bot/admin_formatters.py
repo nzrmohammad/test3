@@ -5,7 +5,7 @@ from .config import EMOJIS, PAGE_SIZE
 from .database import db
 from .utils import (
     format_daily_usage, escape_markdown,
-    format_relative_time, validate_uuid , format_raw_datetime, create_progress_bar, format_shamsi_tehran, gregorian_to_shamsi_str, days_until_next_birthday
+    format_relative_time, validate_uuid, create_progress_bar, format_shamsi_tehran, gregorian_to_shamsi_str, days_until_next_birthday
 )
 
 

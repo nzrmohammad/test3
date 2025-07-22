@@ -6,7 +6,7 @@ from datetime import datetime
 from .utils import (
     create_progress_bar,
     format_daily_usage, escape_markdown,
-    load_service_plans, format_raw_datetime, format_shamsi_tehran, gregorian_to_shamsi_str, days_until_next_birthday
+    load_service_plans, format_shamsi_tehran, gregorian_to_shamsi_str, days_until_next_birthday
 )
 
 logger = logging.getLogger(__name__)

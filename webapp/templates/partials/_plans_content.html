@@ -1,0 +1,27 @@
+<div x-show="activeView === 'plans'">
+    <div class="advanced-card">
+        <div class="advanced-card-header" style="cursor: default;"><div class="advanced-card-title"><i class="fas fa-rocket advanced-card-icon"></i><span>مشاهده و خرید سرویس</span></div></div>
+        <div class="advanced-card-content">
+            <div class="plan-selector">
+                <button @click="fetchServicePlans('combined')" :class="{'active': activePlanType === 'combined'}">🚀 ترکیبی</button>
+                <button @click="fetchServicePlans('germany')" :class="{'active': activePlanType === 'germany'}"><span class="flag-icon flag-icon-de"></span> آلمان</button>
+                <button @click="fetchServicePlans('france')" :class="{'active': activePlanType === 'france'}"><span class="flag-icon flag-icon-fr"></span> فرانسه</button>
+            </div>
+            <div x-show="plansLoading" class="loading-state-small">درحال بارگذاری پلن‌ها...</div>
+            <div class="plans-grid">
+                <template x-for="plan in servicePlans" :key="plan.name">
+                    <div class="plan-card">
+                        <h4 x-text="plan.name"></h4>
+                        <ul>
+                            <template x-if="plan.total_volume"><li x-text="`حجم کل: ${plan.total_volume}`"></li></template>
+                            <template x-if="plan.volume_de"><li x-text="`آلمان: ${plan.volume_de}`"></li></template>
+                            <template x-if="plan.volume_fr"><li x-text="`فرانسه: ${plan.volume_fr}`"></li></template>
+                            <li x-text="`مدت: ${plan.duration}`"></li>
+                        </ul>
+                        <a :href="supportLink" target="_blank" class="contact-admin-btn">تماس با پشتیبانی</a>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>

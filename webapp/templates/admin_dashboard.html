@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}پنل مدیریت{% endblock %}
+
+{% block content %}
+<div x-data="adminApp()" class="dashboard-layout fade-in-section">
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="logo">پنل<span>ادمین</span></div></div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="#" @click.prevent="setView('dashboard')" :class="{ 'active': activeView === 'dashboard' }"><i class="fas fa-tachometer-alt"></i> داشبورد</a></li>
+                <li><a href="#" @click.prevent="setView('users')" :class="{ 'active': activeView === 'users' }"><i class="fas fa-users"></i> مدیریت کاربران</a></li>
+                <li><a href="#" @click.prevent="setView('plans')" :class="{ 'active': activeView === 'plans' }"><i class="fas fa-rocket"></i> مدیریت پلن‌ها</a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer"><a href="#" @click.prevent="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> خروج</a></div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-center-content"><div class="welcome-message"><span class="welcome-text" x-text="activeViewTitle"></span></div></div>
+            <div class="settings-card">
+                <div class="settings-list">
+                    <div class="setting-item" @click="toggleTheme()"><div class="setting-icon"><i class="fas" :class="isLight ? 'fa-sun' : 'fa-moon'"></i></div></div>
+                </div>
+            </div>
+        </header>
+        
+        <div x-show="isLoading" class="loading-state-small">درحال بارگذاری...</div>
+
+        <div x-show="!isLoading" class="main-view-content">
+            {% include 'partials/_admin_users_content.html' %}
+            <div x-show="activeView === 'dashboard'">به زودی...</div>
+            <div x-show="activeView === 'plans'">به زودی...</div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

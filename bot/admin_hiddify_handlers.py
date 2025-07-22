@@ -150,11 +150,9 @@ def _finish_user_creation(uid, user_data):
     if new_user_info and new_user_info.get('uuid'):
         final_info = combined_handler.get_combined_user_info(new_user_info['uuid'])
         text = fmt_admin_user_summary(final_info)
-        # تغيير: escape کردن نقطه
         success_text = f"✅ کاربر با موفقیت ساخته شد\\.\n\n{text}"
         _safe_edit(uid, msg_id, success_text, reply_markup=menu.admin_panel_management_menu('hiddify'))
     else:
-        # تغيير: escape کردن نقطه
         err_msg = "❌ خطا در ساخت کاربر\\. ممکن است نام تکراری باشد یا پنل در دسترس نباشد\\."
         _safe_edit(uid, msg_id, err_msg, reply_markup=menu.admin_panel_management_menu('hiddify'))
 
@@ -166,7 +164,6 @@ def _start_add_user_from_plan_convo(call, params):
     
     plans = load_service_plans()
     if not plans:
-        # تغيير: escape کردن نقطه
         _safe_edit(uid, msg_id, "❌ هیچ پلنی در فایل `plans\\.json` یافت نشد\\.", reply_markup=menu.admin_panel_management_menu(panel))
         return
 
