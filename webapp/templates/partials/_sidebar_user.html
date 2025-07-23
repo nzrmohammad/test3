@@ -1,43 +1,18 @@
-<div class="sidebar">
-    <div class="sidebar-header">
-        <a href="/" class="sidebar-logo">پنل کاربری</a>
+<aside class="sidebar">
+    <div id="sidebar-toggle" class="sidebar-header">
+        <span class="logo-text">پنل شما</span>
+        <i class="ri-arrow-right-s-line toggle-arrow"></i>
     </div>
-    <div class="sidebar-body">
-        <ul class="sidebar-nav">
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('main.user_dashboard', uuid=user.uuid) }}" 
-                   class="sidebar-nav-link {% if request.endpoint == 'main.user_dashboard' %}active{% endif %}">
-                    <i class="icon-dashboard"></i>
-                    <span>داشبورد</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('main.subscription_links_page', uuid=user.uuid) }}" 
-                   class="sidebar-nav-link {% if request.endpoint == 'main.subscription_links_page' %}active{% endif %}">
-                    <i class="icon-link"></i>
-                    <span>لینک‌های اشتراک</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('main.usage_chart_page', uuid=user.uuid) }}" 
-                   class="sidebar-nav-link {% if request.endpoint == 'main.usage_chart_page' %}active{% endif %}">
-                    <i class="icon-chart"></i>
-                    <span>نمودار مصرف</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('main.profile_page', uuid=user.uuid) }}" 
-                   class="sidebar-nav-link {% if request.endpoint == 'main.profile_page' %}active{% endif %}">
-                    <i class="icon-user"></i>
-                    <span>پروفایل</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('main.logout') }}" class="sidebar-nav-link">
-                    <i class="icon-logout"></i>
-                    <span>خروج</span>
-                </a>
-            </li>
+    <nav class="sidebar-nav">
+        <ul>
+            <li><a href="{{ url_for('user.user_dashboard', uuid=user.uuid) }}" class="{% if request.endpoint == 'user.user_dashboard_page' %}active{% endif %}"><i class="ri-time-line nav-icon"></i><span class="nav-text">داشبورد</span></a></li>
+            <li><a href="{{ url_for('user.subscription_links_page', uuid=user.uuid) }}" class="{% if request.endpoint == 'user.subscription_links_page' %}active{% endif %}"><i class="ri-links-line nav-icon"></i><span class="nav-text">لینک‌های اتصال</span></a></li>
+            <li><a href="{{ url_for('user.usage_chart_page', uuid=user.uuid) }}" class="{% if request.endpoint == 'user.usage_chart_page' %}active{% endif %}"><i class="ri-bar-chart-fill nav-icon"></i><span class="nav-text">نمودار مصرف</span></a></li>
+            <li><a href="{{ url_for('user.buy_service_page', uuid=user.uuid) }}" class="{% if request.endpoint == 'user.buy_service_page' %}active{% endif %}"><i class="ri-shopping-cart-line nav-icon"></i><span class="nav-text">خرید سرویس</span></a></li>
+            <li><a href="{{ url_for('user.tutorials_page', uuid=user.uuid) }}" class="{% if request.endpoint == 'user.tutorials_page' %}active{% endif %}"><i class="ri-lightbulb-line nav-icon"></i><span class="nav-text">آموزش و نرم‌افزارها</span></a></li>
         </ul>
+    </nav>
+    <div class="logout">
+        <nav><ul><li><a href="#"><i class="ri-logout-box-r-line nav-icon"></i><span class="nav-text">خروج</span></a></li></ul></nav>
     </div>
-</div>
+</aside>

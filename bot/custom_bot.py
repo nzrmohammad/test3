@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 from telebot import TeleBot
 
-# تمام import های داخلی با نقطه (.) اصلاح شده‌اند
 from .config import LOG_LEVEL, ADMIN_IDS, BOT_TOKEN
 from .database import db
 from .scheduler import SchedulerManager
@@ -100,6 +99,7 @@ class HiddifyBot:
             return
         try:
             logger.info("Registering handlers...")
+
             register_user_handlers(self.bot)
             register_admin_handlers(self.bot)
             register_callback_router(self.bot)

@@ -23,6 +23,7 @@ ADMIN_PROXY_PATH_RAW = os.getenv("ADMIN_PROXY_PATH", "")
 ADMIN_PROXY_PATH = ADMIN_PROXY_PATH_RAW.strip("/") if ADMIN_PROXY_PATH_RAW else ""
 ADMIN_UUID = os.getenv("ADMIN_UUID")
 ADMIN_IDS = _parse_admin_ids(os.getenv("ADMIN_IDS")) or {265455450}
+ADMIN_SECRET_KEY = "your-very-secret-and-long-random-key"
 
 MARZBAN_API_BASE_URL = os.getenv("MARZBAN_API_BASE_URL", "https://panel2.fox1.eu.org:8000")
 MARZBAN_API_USERNAME = os.getenv("MARZBAN_API_USERNAME")

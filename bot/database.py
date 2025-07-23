@@ -88,12 +88,28 @@ class DatabaseManager:
                                     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                     FOREIGN KEY(uuid_id) REFERENCES user_uuids(id) ON DELETE CASCADE
                                 );
+                                CREATE TABLE IF NOT EXISTS config_templates (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    template_str TEXT NOT NULL,     -- متن کامل کانفیگ vless://...
+                                    is_active INTEGER DEFAULT 1,           -- وضعیت فعال/غیرفعال (1=فعال)
+                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                                );
+
+                                CREATE TABLE IF NOT EXISTS user_generated_configs (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    user_uuid_id INTEGER NOT NULL,
+                                    template_id INTEGER NOT NULL,
+                                    generated_uuid TEXT NOT NULL UNIQUE,
+                                    FOREIGN KEY(user_uuid_id) REFERENCES user_uuids(id) ON DELETE CASCADE,
+                                    FOREIGN KEY(template_id) REFERENCES config_templates(id) ON DELETE CASCADE,
+                                    UNIQUE(user_uuid_id, template_id)
+                                );
                                     CREATE INDEX IF NOT EXISTS idx_user_uuids_uuid ON user_uuids(uuid);
                                     CREATE INDEX IF NOT EXISTS idx_user_uuids_user_id ON user_uuids(user_id);
                                     CREATE INDEX IF NOT EXISTS idx_snapshots_uuid_id_taken_at ON usage_snapshots(uuid_id, taken_at);
                                     CREATE INDEX IF NOT EXISTS idx_scheduled_messages_job_type ON scheduled_messages(job_type);
                                     CREATE INDEX IF NOT EXISTS idx_warning_log_uuid_type ON warning_log(uuid_id, warning_type);
-                            """)
+                                """)
         logger.info("SQLite schema and indexes are ready.")
 
     def add_usage_snapshot(self, uuid_id: int, hiddify_usage: float, marzban_usage: float) -> None:
@@ -417,4 +433,66 @@ class DatabaseManager:
         with self._conn() as c:
             c.execute("UPDATE users SET admin_note = ? WHERE user_id = ?", (note, user_id))
 
+    def add_batch_templates(self, templates: list[str]) -> int:
+        """
+        لیستی از رشته‌های الگو را به صورت دسته‌ای به دیتابیس اضافه می‌کند.
+        تمام ورودی‌ها، حتی تکراری، اضافه خواهند شد.
+        تعداد ردیف‌های اضافه شده را برمی‌گرداند.
+        """
+        if not templates:
+            return 0
+        
+        with self._conn() as c:
+            cursor = c.cursor()
+            # استفاده از INSERT ساده برای افزودن تمام موارد
+            cursor.executemany(
+                "INSERT INTO config_templates (template_str) VALUES (?)",
+                [(tpl,) for tpl in templates]
+            )
+            return cursor.rowcount
+
+    def get_all_config_templates(self) -> list[dict]:
+        """تمام الگوهای کانفیگ تعریف شده توسط ادمین را برمی‌گرداند."""
+        with self._conn() as c:
+            rows = c.execute("SELECT * FROM config_templates ORDER BY id DESC").fetchall()
+            return [dict(r) for r in rows]
+
+    def get_active_config_templates(self) -> list[dict]:
+        """فقط الگوهای کانفیگ فعال را برمی‌گرداند."""
+        with self._conn() as c:
+            rows = c.execute("SELECT * FROM config_templates WHERE is_active = 1").fetchall()
+            return [dict(r) for r in rows]
+
+    def toggle_template_status(self, template_id: int) -> None:
+        """وضعیت فعال/غیرفعال یک الگو را تغییر می‌دهد."""
+        with self._conn() as c:
+            c.execute("UPDATE config_templates SET is_active = 1 - is_active WHERE id = ?", (template_id,))
+
+    def delete_template(self, template_id: int) -> None:
+        """یک الگو و تمام کانفیگ‌های تولید شده از آن را حذف می‌کند."""
+        with self._conn() as c:
+            c.execute("DELETE FROM config_templates WHERE id = ?", (template_id,))
+
+    def get_user_config(self, user_uuid_id: int, template_id: int) -> dict | None:
+        """کانفیگ تولید شده برای یک کاربر و یک الگوی خاص را بازیابی می‌کند."""
+        with self._conn() as c:
+            row = c.execute(
+                "SELECT * FROM user_generated_configs WHERE user_uuid_id = ? AND template_id = ?",
+                (user_uuid_id, template_id)
+            ).fetchone()
+            return dict(row) if row else None
+
+    def add_user_config(self, user_uuid_id: int, template_id: int, generated_uuid: str) -> None:
+        """یک رکورد جدید برای UUID تولید شده ثبت می‌کند."""
+        with self._conn() as c:
+            c.execute(
+                "INSERT INTO user_generated_configs (user_uuid_id, template_id, generated_uuid) VALUES (?, ?, ?)",
+                (user_uuid_id, template_id, generated_uuid)
+            )
+
+    def get_user_uuid_record(self, uuid_str: str) -> dict | None:
+        """اطلاعات کامل یک رکورد UUID را بر اساس رشته آن برمی‌گرداند."""
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM user_uuids WHERE uuid = ? AND is_active = 1", (uuid_str,)).fetchone()
+            return dict(row) if row else None
 db = DatabaseManager()

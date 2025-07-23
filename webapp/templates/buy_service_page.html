@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 
 {% block title %}خرید سرویس{% endblock %}
+
 {% block page_content %}
-        {% set page_title='خرید و تمدید سرویس' %}
-        {% include 'partials/_header.html' %}
-    
+    {% set page_title='خرید و تمدید سرویس' %}
+    {% include 'partials/_header.html' %}
+
     <h3 class="section-title">🚀 پلن‌های ترکیبی (پیشنهادی)</h3>
     <section class="details-grid">
-        {% for plan in plans if plan.type == 'combined' %}
+        {% for plan in combined_plans %}
         <div class="info-card panel-card">
             <div class="panel-header"><h4>{{ plan.name }}</h4></div>
             <ul class="server-stats">
@@ -18,12 +19,14 @@
             </ul>
             <a href="{{ support_link }}" class="btn-action full-width-btn" target="_blank">خرید و مشاوره</a>
         </div>
+        {% else %}
+            <p>در حال حاضر پلن ترکیبی برای نمایش وجود ندارد.</p>
         {% endfor %}
     </section>
     
      <h3 class="section-title">پلن‌های اختصاصی</h3>
      <section class="details-grid">
-        {% for plan in plans if plan.type != 'combined' %}
+        {% for plan in dedicated_plans %}
         <div class="info-card panel-card">
             <div class="panel-header"><h4>{{ plan.name }}</h4></div>
              <ul class="server-stats">
@@ -32,6 +35,8 @@
             </ul>
             <a href="{{ support_link }}" class="btn-action full-width-btn" target="_blank">خرید و مشاوره</a>
         </div>
+        {% else %}
+            <p>در حال حاضر پلن اختصاصی برای نمایش وجود ندارد.</p>
         {% endfor %}
     </section>
 {% endblock %}

@@ -1,45 +1,30 @@
-from flask import Blueprint, render_template, jsonify, request, Response, abort, redirect, url_for
-import requests
-import os
-from functools import wraps
-import logging
-
-from bot.config import ADMIN_SUPPORT_CONTACT, HIDDIFY_DOMAIN, ADMIN_PROXY_PATH, ADMIN_SECRET_KEY
-from .services import get_processed_user_data
+from flask import Blueprint, render_template, abort
+from webapp.services import get_processed_user_data
 from .utils import load_json_file
+from bot.config import ADMIN_SUPPORT_CONTACT
 from bot.database import db
 
-main_bp = Blueprint('main', __name__)
+import logging
 logger = logging.getLogger(__name__)
+user_bp = Blueprint('user', __name__, url_prefix='/user')
 
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        provided_key = request.args.get('key')
-        if provided_key != ADMIN_SECRET_KEY:
-            abort(403, "Access Forbidden: Invalid or missing admin key.")
-        return f(*args, **kwargs)
-    return decorated_function
-
-@main_bp.route('/')
-def index():
-    return redirect(url_for('main.admin_page'))
-
-@main_bp.route('/user/<string:uuid>')
+@user_bp.route('/<string:uuid>')
 def user_dashboard(uuid):
     user_data = get_processed_user_data(uuid)
     if not user_data:
         abort(404, "کاربر یافت نشد")
     return render_template('user_dashboard.html', user=user_data)
 
-@main_bp.route('/user/<string:uuid>/links')
+
+@user_bp.route('/<string:uuid>/links')
 def subscription_links_page(uuid):
     user_data = get_processed_user_data(uuid)
     if not user_data:
         abort(404, "کاربر یافت نشد")
     return render_template('subscription_links_page.html', user=user_data)
 
-@main_bp.route('/user/<string:uuid>/usage')
+
+@user_bp.route('/user/<string:uuid>/usage')
 def usage_chart_page(uuid):
     user_data = get_processed_user_data(uuid)
     if not user_data:
@@ -67,11 +52,9 @@ def usage_chart_page(uuid):
 
     return render_template('usage_chart_page.html', user=user_data, usage_data=chart_data)
 
-@main_bp.route('/user/<string:uuid>/buy')
+
+@user_bp.route('/user/<string:uuid>/buy')
 def buy_service_page(uuid):
-    """
-    اصلاح‌شده: این تابع اکنون پلن‌ها را به دو لیست جداگانه تفکیک می‌کند.
-    """
     user_data = get_processed_user_data(uuid)
     if not user_data:
         abort(404, "کاربر یافت نشد")
@@ -79,7 +62,6 @@ def buy_service_page(uuid):
     all_plans = load_json_file('plans.json')
     support_link = f"https://t.me/{ADMIN_SUPPORT_CONTACT.replace('@', '')}"
 
-    # تفکیک پلن‌ها در پایتون به جای قالب
     combined_plans = []
     dedicated_plans = []
     if isinstance(all_plans, list):
@@ -97,37 +79,10 @@ def buy_service_page(uuid):
         support_link=support_link
     )
 
-@main_bp.route('/user/<string:uuid>/tutorials')
+
+@user_bp.route('/user/<string:uuid>/tutorials')
 def tutorials_page(uuid):
     user_data = get_processed_user_data(uuid)
     if not user_data:
         abort(404, "کاربر یافت نشد")
     return render_template('tutorials_page.html', user=user_data)
-
-@main_bp.route('/admin')
-@admin_required 
-def admin_page():
-    all_uuids = db.get_all_user_ids()
-    stats = {
-        'total_users': len(all_uuids),
-        'online_users': '...', # محاسبه این مورد نیاز به منطق جداگانه دارد
-        'total_usage_today': '...', # و همینطور این
-        'new_users_today': '...' # و این
-    }
-    return render_template('admin_dashboard.html', stats=stats, is_admin=True)
-
-@main_bp.route('/api/admin/users')
-@admin_required 
-def get_all_users_api():
-    try:
-        all_uuids = db.get_all_user_ids()
-        all_users_data = []
-        for uuid in all_uuids:
-            user_data = get_processed_user_data(uuid)
-            if user_data:
-                all_users_data.append(user_data)
-        
-        return jsonify(all_users_data)
-    except Exception as e:
-        logger.error(f"Error fetching all users for admin: {e}")
-        return jsonify({"error": "خطا در دریافت لیست کاربران"}), 500

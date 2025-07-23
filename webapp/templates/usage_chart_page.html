@@ -1,82 +1,83 @@
 {% extends "base.html" %}
 
-{% block title %}نمودار مصرف{% endblock %}
+{% block title %}نمودارهای مصرف{% endblock %}
 
 {% block page_content %}
-<div class="main-wrapper">
+    {% set page_title = 'تحلیل مصرف' %}
+    {% include 'partials/_header.html' %}
 
-    {% include 'partials/_sidebar_user.html' %}
-
-    <div class="main-content">
-        {% set page_title = 'نمودار مصرف روزانه' %}
-        {% include 'partials/_header.html' %}
-
-        <div class="content-body">
-            <div class="card">
-                <div class="card-header">
-                    <h3>نمودار مصرف ۳۰ روز گذشته</h3>
-                </div>
-                <div class="card-body">
-                    <div id="usageChart"></div>
-                </div>
-            </div>
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+            <h3>نمودار مصرف ۲۴ ساعت گذشته</h3>
+        </div>
+        <div class="card-body">
+            <div id="dailyUsageChart"></div>
         </div>
     </div>
-</div>
 
+    <div class="card">
+        <div class="card-header">
+            <h3>تفکیک مصرف کل بر اساس سرور</h3>
+        </div>
+        <div class="card-body">
+            <div id="serverUsageDonutChart"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // دیتا به صورت JSON از سمت سرور به اینجا تزریق می‌شود
-    const usageData = JSON.parse('{{ usage_data | tojson | safe }}');
+    
+    // --- بخش اول: رندر کردن نمودار مصرف روزانه ---
+    try {
+        const dailyChartData = {{ usage_data | tojson | safe }};
 
-    var options = {
-        chart: {
-            type: 'area',
-            height: 350,
-            zoom: { enabled: false },
-            toolbar: { show: false },
-            fontFamily: 'IRANSans, sans-serif' // اطمینان حاصل کنید این فونت در CSS شما وجود دارد
-        },
-        series: usageData.series,
-        xaxis: {
-            categories: usageData.categories
-        },
-        yaxis: {
-            title: {
-                text: 'مگابایت'
-            },
-            labels: {
-                formatter: function (val) {
-                    return val.toFixed(0);
-                }
-            }
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: 'smooth'
-        },
-        tooltip: {
-            y: {
-                formatter: function (val) {
-                    return val + " مگابایت";
-                }
-            }
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.7,
-                opacityTo: 0.9,
-                stops: [0, 90, 100]
-            }
-        },
-    };
+        if (!dailyChartData || !dailyChartData.series || dailyChartData.series.length === 0) {
+            document.querySelector("#dailyUsageChart").innerHTML = "<p style='text-align:center; padding: 2rem;'>دیتایی برای نمودار مصرف روزانه یافت نشد.</p>";
+        } else {
+            const dailyOptions = {
+                chart: { type: 'bar', height: 350, toolbar: { show: false }, fontFamily: 'Vazirmatn, sans-serif' },
+                series: dailyChartData.series,
+                xaxis: { categories: dailyChartData.categories },
+                yaxis: { title: { text: 'حجم مصرف (GB)', offsetX: -65 }, labels: { formatter: (val) => val.toFixed(2) } },
+                plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
+                dataLabels: { enabled: false },
+                tooltip: { y: { formatter: (val) => val.toFixed(2) + " GB" }, theme: 'dark' },
+                legend: { position: 'top' }
+            };
+            const dailyChart = new ApexCharts(document.querySelector("#dailyUsageChart"), dailyOptions);
+            dailyChart.render();
+        }
+    } catch (e) {
+        console.error("Error rendering daily chart:", e);
+        document.querySelector("#dailyUsageChart").innerHTML = "<p style='text-align:center; color: red;'>خطا در رندر نمودار مصرف روزانه.</p>";
+    }
 
-    var chart = new ApexCharts(document.querySelector("#usageChart"), options);
-    chart.render();
+    // --- بخش دوم: رندر کردن نمودار تفکیک سرور ---
+    try {
+        const hiddifyUsage = {{ user.breakdown.hiddify.current_usage_GB | default(0) }};
+        const marzbanUsage = {{ user.breakdown.marzban.current_usage_GB | default(0) }};
+
+        if (hiddifyUsage === 0 && marzbanUsage === 0) {
+            document.querySelector("#serverUsageDonutChart").innerHTML = "<p style='text-align:center; padding: 2rem;'>هنوز مصرفی برای نمایش در نمودار ثبت نشده است.</p>";
+        } else {
+            const donutOptions = {
+                series: [hiddifyUsage, marzbanUsage],
+                chart: { type: 'donut', height: 350, fontFamily: 'Vazirmatn, sans-serif' },
+                labels: ['سرور آلمان (Hiddify)', 'سرور فرانسه (Marzban)'],
+                colors: ['#008FFB', '#00E396'],
+                legend: { position: 'top' },
+                tooltip: { y: { formatter: (val) => val.toFixed(2) + " GB" }, theme: 'dark' },
+                dataLabels: { enabled: true, formatter: (val, opts) => opts.w.config.series[opts.seriesIndex].toFixed(1) + " GB" },
+            };
+            const donutChart = new ApexCharts(document.querySelector("#serverUsageDonutChart"), donutOptions);
+            donutChart.render();
+        }
+    } catch (e) {
+        console.error("Error rendering donut chart:", e);
+        document.querySelector("#serverUsageDonutChart").innerHTML = "<p style='text-align:center; color: red;'>خطا در رندر نمودار تفکیک سرور.</p>";
+    }
 });
 </script>
 {% endblock %}

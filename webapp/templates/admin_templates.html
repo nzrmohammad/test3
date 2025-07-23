@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}مدیریت کانفیگ‌ها{% endblock %}
+{% block page_title %}مدیریت کانفیگ‌ها{% endblock %}
+
+{% block page_content %}
+    {% include 'partials/_header.html' %}
+
+    <!-- فرم افزودن دسته‌ای کانفیگ -->
+    <section class="info-card">
+        <div class="table-header"><h3>افزودن کانفیگ‌های جدید</h3></div>
+        <form id="add-templates-form" style="padding: 1.5rem;">
+            <div style="margin-bottom: 1rem;">
+                <label for="templates_str">لیست کانفیگ‌ها (هر کدام در یک خط)</label>
+                <textarea id="templates_str" name="templates_str" rows="10" placeholder="vless://...&#10;vmess://...&#10;trojan://..." required style="width: 100%; padding: 0.75rem; direction: ltr; text-align: left; margin-top: 0.5rem; font-family: monospace; font-size: 1rem;"></textarea>
+            </div>
+            <button type="submit" style="width: 100%; padding: 0.75rem; border: none; background-color: #0d6efd; color: white; cursor: pointer; font-size: 1rem; border-radius: 0.25rem;">افزودن همه به سیستم</button>
+        </form>
+    </section>
+
+    <!-- جدول لیست کانفیگ‌ها -->
+    <section class="info-card data-table-container" style="margin-top: 2rem;">
+        <div class="table-header"><h3>لیست کانفیگ‌های موجود</h3></div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">ID</th>
+                        <th>الگوی کانفیگ</th>
+                        <th style="text-align: center;">وضعیت</th>
+                        <th style="text-align: center;">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody id="templates-table-body">
+                    {% for tpl in templates %}
+                        <tr data-template-id="{{ tpl.id }}">
+                            <td style="text-align: center;">{{ tpl.id }}</td>
+                            <td title="{{ tpl.template_str }}" style="direction: ltr; font-family: monospace; font-size: 0.9em; max-width: 70vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ tpl.template_str }}</td>
+                            <td style="text-align: center;"><span class="status-badge {{ 'status-active' if tpl.is_active else 'status-inactive' }}">{{ 'فعال' if tpl.is_active else 'غیرفعال' }}</span></td>
+                            <td style="text-align: center;">
+                                <button class="toggle-btn" data-id="{{ tpl.id }}">تغییر وضعیت</button>
+                                <button class="delete-btn" data-id="{{ tpl.id }}" style="color: red; margin-left: 0.5rem;">حذف</button>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr id="no-templates-row"><td colspan="4" style="text-align: center; padding: 1rem;">هیچ کانفیگی در سیستم تعریف نشده است.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addForm = document.getElementById('add-templates-form');
+    const tableBody = document.getElementById('templates-table-body');
+    const adminKey = new URLSearchParams(window.location.search).get('key');
+
+    // --- Add New Templates Batch ---
+    addForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = {
+            templates_str: addForm.templates_str.value
+        };
+
+        fetch(`/admin/api/templates?key=${adminKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            alert(result.message);
+            if (result.success) {
+                location.reload();
+            }
+        });
+    });
+
+    // --- Handle Toggle and Delete ---
+    tableBody.addEventListener('click', function(e) {
+        const button = e.target;
+        const templateId = button.dataset.id;
+        if (!templateId) return;
+
+        let url, method;
+        if (button.classList.contains('toggle-btn')) {
+            url = `/admin/api/templates/toggle/${templateId}?key=${adminKey}`;
+            method = 'POST';
+        } else if (button.classList.contains('delete-btn')) {
+            if (!confirm('آیا از حذف این کانفیگ با شناسه ' + templateId + ' مطمئن هستید؟')) return;
+            url = `/admin/api/templates/${templateId}?key=${adminKey}`;
+            method = 'DELETE';
+        } else {
+            return;
+        }
+
+        fetch(url, { method: method })
+        .then(res => res.json())
+        .then(result => {
+            alert(result.message);
+            if (result.success) {
+                if (method === 'DELETE') {
+                    button.closest('tr').remove();
+                } else { // Toggle
+                    const row = button.closest('tr');
+                    const statusBadge = row.querySelector('.status-badge');
+                    const isActive = statusBadge.classList.contains('status-active');
+                    statusBadge.textContent = isActive ? 'غیرفعال' : 'فعال';
+                    statusBadge.classList.toggle('status-active', !isActive);
+                    statusBadge.classList.toggle('status-inactive', isActive);
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

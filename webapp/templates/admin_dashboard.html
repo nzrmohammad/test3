@@ -4,7 +4,8 @@
 {% block page_title %}داشبورد ادمین{% endblock %}
 
 {% block page_content %}
-    <!-- کارت‌های آمار کلی -->
+    {% include 'partials/_header.html' %}
+
     <section class="info-grid">
         <div class="info-card"><div class="card-header"><i class="ri-group-line icon"></i><span>کل کاربران</span></div><div class="card-content">{{ stats.total_users | default('...') }}</div></div>
         <div class="info-card"><div class="card-header"><i class="ri-wifi-line icon"></i><span>کاربران آنلاین</span></div><div class="card-content">{{ stats.online_users | default('...') }}</div></div>

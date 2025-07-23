@@ -26,11 +26,6 @@
             <div class="card-header"><i class="ri-database-2-line icon"></i><span>حجم کل</span></div>
             <div class="card-content">
                 <span>{{ "%.1f" | format(user.current_usage_GB) }} / {{ "%.1f" | format(user.usage_limit_GB) }} <small>GB</small></span>
-                 <div class="progress-bar-container main-progress">
-                    <div class="progress-bar">
-                        <div class="progress" style="width: {{ user.usage_percentage | default(0) }}%;"></div>
-                    </div>
-                </div>
             </div>
         </div>
         <div class="info-card">
@@ -68,14 +63,6 @@
                     <div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div>
                     <span class="stat-value">{{ user.breakdown.hiddify.last_online_shamsi | default('نامشخص', true) }}</span>
                 </li>
-                 <li>
-                    <div class="stat-label"><i class="ri-fire-fill"></i><span>درصد مصرف</span></div>
-                    <div class="stat-value progress-bar-container">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ user.breakdown.hiddify.usage_percentage | default(0) }}%;"></div>
-                        </div>
-                    </div>
-                </li>
             </ul>
         </div>
         {% endif %}
@@ -98,14 +85,6 @@
                 <li>
                     <div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div>
                     <span class="stat-value">{{ user.breakdown.marzban.last_online_shamsi | default('نامشخص', true) }}</span>
-                </li>
-                 <li>
-                    <div class="stat-label"><i class="ri-fire-fill"></i><span>درصد مصرف</span></div>
-                    <div class="stat-value progress-bar-container">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ user.breakdown.marzban.usage_percentage | default(0) }}%;"></div>
-                        </div>
-                    </div>
                 </li>
             </ul>
         </div>
