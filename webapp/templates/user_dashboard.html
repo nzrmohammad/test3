@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}داشبورد{% endblock %}
+
+{% block page_content %}
+    {% include 'partials/_header.html' %}
+    <h3 class="section-title">وضعیت کلی اشتراک</h3>
+    <section class="info-grid">
+        <div class="info-card"><div class="card-header"><i class="ri-user-3-line icon"></i><span>نام کاربری</span></div><div class="card-content">{{ user.name | default('ناشناس') }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-shield-check-line icon"></i><span>وضعیت</span></div><div class="card-content status-badge {% if not user.is_active %}inactive{% endif %}">{{ 'فعال' if user.is_active else 'غیرفعال' }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-calendar-todo-line icon"></i><span>اعتبار</span></div><div class="card-content">{{ user.expire | default('نامحدود') }} روز</div></div>
+        <div class="info-card birthday-card">
+            <div class="card-header"><i class="ri-cake-2-line icon"></i><span>شمارنده تولد</span></div>
+            {% if user.days_to_birthday is not none %}<div class="card-content">{{ user.days_to_birthday }} روز تا تولد شما</div>
+            {% else %}<div class="card-content text-secondary">تاریخ تولد ثبت نشده</div>{% endif %}
+        </div>
+    </section>
+
+    <h3 class="section-title">اطلاعات حساب</h3>
+    <section class="details-grid">
+        <div class="info-card uuid-card">
+            <div class="uuid-content"><i class="ri-key-2-line icon"></i><div class="uuid-text" id="uuid-container"><span class="uuid-label">شناسه یکتا (UUID) : </span><span id="uuid-masked">{{ user.uuid[:4] + '****' + user.uuid[-4:] }}</span></div></div>
+            <button id="copy-uuid-btn" class="copy-btn" data-uuid="{{ user.uuid }}" title="کپی کردن شناسه"><i class="ri-file-copy-line"></i></button>
+        </div>
+        <div class="info-card expire-date-card">
+            <i class="ri-calendar-check-line icon"></i><div class="expire-text"><span class="expire-label">تاریخ انقضا : </span><span class="expire-date">{{ user.expire_shamsi }}</span></div>
+        </div>
+    </section>
+    
+    <h3 class="section-title">مصرف کل ترافیک</h3>
+    <section class="info-card total-traffic-card" data-used-gb="{{ user.current_usage_GB | default(0) }}" data-total-gb="{{ user.usage_limit_GB | default(0) }}">
+        <div class="traffic-chart-container"><div id="traffic-doughnut-chart"></div></div>
+        <div class="traffic-details">
+            <div class="detail-item"><span>حجم کل</span><strong>{{ "%.2f"|format(user.usage_limit_GB) }} GB</strong></div>
+            <div class="detail-item"><span>مصرف شده</span><strong>{{ "%.2f"|format(user.current_usage_GB) }} GB</strong></div>
+            <div class="detail-item"><span>باقی‌مانده</span><strong>{{ "%.2f"|format(user.usage_limit_GB - user.current_usage_GB) }} GB</strong></div>
+        </div>
+    </section>
+    
+    <h3 class="section-title">جزئیات مصرف سرورها</h3>
+    <section class="details-grid">
+        {% if user.breakdown.hiddify %}
+        <div class="info-card panel-card">
+            <div class="panel-header">
+                <h4>سرور آلمان</h4><span class="fi fi-de"></span>
+            </div>
+            <ul class="server-stats">
+                <li><div class="stat-label"><i class="ri-database-2-line"></i><span> مجموع حجم</span></div><span class="stat-value">{{ "%.2f"|format(user.breakdown.hiddify.usage_limit_GB) }} GB</span></li>
+                <li><div class="stat-label"><i class="ri-fire-line"></i><span> مجموع مصرف</span></div><span class="stat-value">{{ "%.2f"|format(user.breakdown.hiddify.current_usage_GB) }} GB</span></li>
+                <li><div class="stat-label"><i class="ri-flashlight-line"></i><span> مصرف امروز</span></div><span class="stat-value">{{ "%.2f"|format(user.breakdown.hiddify.daily_usage_GB) }} GB</span></li>
+                <li><div class="stat-label"><i class="ri-time-line"></i><span> آخرین اتصال</span></div><span class="stat-value">{{ user.breakdown.hiddify.last_online_shamsi | default('هرگز') }}</span></li>
+
+
+            </ul>
+        </div>
+        {% endif %}
+        {% if user.breakdown.marzban %}
+        <div class="info-card panel-card">
+            <div class="panel-header"><h4>سرور فرانسه</h4><span class="fi fi-fr"></span></div>
+             <ul class="server-stats">
+                <li><div class="stat-label"><i class="ri-database-2-line"></i><span> مجموع حجم</span></div><span class="stat-value">{{ "%.2f"|format(user.breakdown.marzban.usage_limit_GB) }} GB</span></li>
+                <li><div class="stat-label"><i class="ri-fire-line"></i><span> مجموع مصرف</span></div><span class="stat-value">{{ "%.2f"|format(user.breakdown.marzban.current_usage_GB) }} GB</span></li>
+                <li><div class="stat-label"><i class="ri-flashlight-line"></i><span> مصرف امروز</span></div><span class="stat-value">{{ "%.2f"|format(user.breakdown.marzban.daily_usage_GB) }} GB</span></li>
+                <li><div class="stat-label"><i class="ri-time-line"></i><span> آخرین اتصال</span></div><span class="stat-value">{{ user.breakdown.marzban.last_online_shamsi | default('هرگز') }}</span></li>
+
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+{% endblock %}

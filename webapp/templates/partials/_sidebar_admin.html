@@ -1,0 +1,24 @@
+<aside class="sidebar">
+    <div id="sidebar-toggle" class="sidebar-header">
+        <span class="logo-text">پنل ادمین</span>
+        <i class="ri-arrow-right-s-line toggle-arrow"></i>
+    </div>
+    <nav class="sidebar-nav">
+        <ul>
+            <!-- رفع باگ: استفاده از نام صحیح روت و ارسال کلید امنیتی -->
+            <li><a href="{{ url_for('main.admin_page', key=request.args.get('key')) }}" class="active"><i class="ri-dashboard-3-line nav-icon"></i><span class="nav-text">داشبورد</span></a></li>
+            
+            <!-- این لینک‌ها تا زمان ساخت روت غیرفعال هستند -->
+            <li><a href="#"><i class="ri-group-line nav-icon"></i><span class="nav-text">مدیریت کاربران</span></a></li>
+            <li><a href="#"><i class="ri-server-line nav-icon"></i><span class="nav-text">مدیریت سرورها</span></a></li>
+            <li><a href="#"><i class="ri-settings-3-line nav-icon"></i><span class="nav-text">تنظیمات کلی</span></a></li>
+        </ul>
+    </nav>
+    <div class="logout">
+        <nav>
+            <ul>
+                <li><a href="#"><i class="ri-logout-box-r-line nav-icon"></i><span class="nav-text">خروج</span></a></li>
+            </ul>
+        </nav>
+    </div>
+</aside>

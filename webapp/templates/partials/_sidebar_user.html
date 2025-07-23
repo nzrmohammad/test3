@@ -1,0 +1,17 @@
+<aside class="sidebar">
+    <div id="sidebar-toggle" class="sidebar-header">
+        <span class="logo-text">پنل شما</span>
+        <i class="ri-arrow-right-s-line toggle-arrow"></i>
+    </div>
+    <nav class="sidebar-nav">
+        <ul>
+            <!-- لینک‌ها به روت‌های کامل و جدید اشاره می‌کنند -->
+            <li><a href="{{ url_for('main.user_dashboard_page', uuid=user.uuid) }}" class="{% if request.endpoint == 'main.user_dashboard_page' %}active{% endif %}"><i class="ri-time-line nav-icon"></i><span class="nav-text">داشبورد</span></a></li>
+            <li><a href="{{ url_for('main.usage_chart_page', uuid=user.uuid) }}" class="{% if request.endpoint == 'main.usage_chart_page' %}active{% endif %}"><i class="ri-bar-chart-fill nav-icon"></i><span class="nav-text">نمودار مصرف</span></a></li>
+            <li><a href="{{ url_for('main.buy_service_page', uuid=user.uuid) }}" class="{% if request.endpoint == 'main.buy_service_page' %}active{% endif %}"><i class="ri-shopping-cart-line nav-icon"></i><span class="nav-text">خرید سرویس</span></a></li>
+        </ul>
+    </nav>
+    <div class="logout">
+        <nav><ul><li><a href="#"><i class="ri-logout-box-r-line nav-icon"></i><span class="nav-text">خروج</span></a></li></ul></nav>
+    </div>
+</aside>

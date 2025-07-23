@@ -27,7 +27,7 @@ def admin_required(f):
 def index():
     support_username = ADMIN_SUPPORT_CONTACT.replace('@', '')
     support_link = f"https://t.me/{support_username}"
-    return render_template('index.html', support_link=support_link)
+    return render_template('user_dashboard.html', support_link=support_link)
 
 
 @main_bp.route('/api/user/<string:uuid>')

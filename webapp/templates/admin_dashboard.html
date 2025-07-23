@@ -1,42 +1,100 @@
 {% extends "base.html" %}
 
-{% block title %}پنل مدیریت{% endblock %}
+{% block title %}داشبورد ادمین{% endblock %}
+{% block page_title %}داشبورد ادمین{% endblock %}
 
-{% block content %}
-<div x-data="adminApp()" class="dashboard-layout fade-in-section">
-    <aside class="sidebar">
-        <div class="sidebar-header"><div class="logo">پنل<span>ادمین</span></div></div>
-        <nav class="sidebar-nav">
-            <ul>
-                <li><a href="#" @click.prevent="setView('dashboard')" :class="{ 'active': activeView === 'dashboard' }"><i class="fas fa-tachometer-alt"></i> داشبورد</a></li>
-                <li><a href="#" @click.prevent="setView('users')" :class="{ 'active': activeView === 'users' }"><i class="fas fa-users"></i> مدیریت کاربران</a></li>
-                <li><a href="#" @click.prevent="setView('plans')" :class="{ 'active': activeView === 'plans' }"><i class="fas fa-rocket"></i> مدیریت پلن‌ها</a></li>
-            </ul>
-        </nav>
-        <div class="sidebar-footer"><a href="#" @click.prevent="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> خروج</a></div>
-    </aside>
-
-    <main class="main-content">
-        <header class="header">
-            <div class="header-center-content"><div class="welcome-message"><span class="welcome-text" x-text="activeViewTitle"></span></div></div>
-            <div class="settings-card">
-                <div class="settings-list">
-                    <div class="setting-item" @click="toggleTheme()"><div class="setting-icon"><i class="fas" :class="isLight ? 'fa-sun' : 'fa-moon'"></i></div></div>
-                </div>
+{% block page_content %}
+    <!-- کارت‌های آمار کلی -->
+    <section class="info-grid">
+        <div class="info-card"><div class="card-header"><i class="ri-group-line icon"></i><span>کل کاربران</span></div><div class="card-content">{{ stats.total_users | default('...') }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-wifi-line icon"></i><span>کاربران آنلاین</span></div><div class="card-content">{{ stats.online_users | default('...') }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-download-cloud-2-line icon"></i><span>مصرف امروز</span></div><div class="card-content">{{ stats.total_usage_today | default('...') }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-user-add-line icon"></i><span>کاربران جدید</span></div><div class="card-content">{{ stats.new_users_today | default('...') }}</div></div>
+    </section>
+    
+    <!-- جدول مدیریت کاربران -->
+    <section class="info-card data-table-container">
+        <div class="table-header">
+            <h3>لیست کاربران</h3>
+            <div class="search-box">
+                <i class="ri-search-line"></i>
+                <input type="text" id="user-search-input" placeholder="جستجو بر اساس نام یا UUID...">
             </div>
-        </header>
-        
-        <div x-show="isLoading" class="loading-state-small">درحال بارگذاری...</div>
-
-        <div x-show="!isLoading" class="main-view-content">
-            {% include 'partials/_admin_users_content.html' %}
-            <div x-show="activeView === 'dashboard'">به زودی...</div>
-            <div x-show="activeView === 'plans'">به زودی...</div>
         </div>
-    </main>
-</div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr><th>نام کاربر</th><th>وضعیت</th><th>مصرف / کل (GB)</th><th>اعتبار (روز)</th><th>آخرین اتصال</th><th>عملیات</th></tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr><td colspan="6" class="text-center">درحال بارگذاری اطلاعات...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 {% endblock %}
 
-{% block scripts %}
-    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.getElementById('users-table-body');
+    const searchInput = document.getElementById('user-search-input');
+    let allUsersData = []; // ذخیره داده‌ها برای جستجوی سریع
+
+    // تابع برای نمایش کاربران در جدول
+    function renderTable(users) {
+        tableBody.innerHTML = '';
+        if (users.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">هیچ کاربری یافت نشد.</td></tr>';
+            return;
+        }
+        users.forEach(user => {
+            const usage = `${(user.current_usage_GB || 0).toFixed(1)} / ${(user.usage_limit_GB || 0).toFixed(1)}`;
+            const statusClass = user.is_active ? 'status-active' : 'status-inactive';
+            const lastOnline = user.breakdown?.hiddify?.last_online_shamsi || user.breakdown?.marzban?.last_online_shamsi || 'هرگز';
+            
+            // دکمه مشاهده که به صفحه کاربر لینک می‌دهد
+            const viewButton = `<a href="/user/${user.uuid}" class="btn-action">مشاهده</a>`;
+            
+            const row = `
+                <tr>
+                    <td>${user.name || 'ناشناس'}</td>
+                    <td><span class="status-badge ${statusClass}">${user.is_active ? 'فعال' : 'غیرفعال'}</span></td>
+                    <td>${usage}</td>
+                    <td>${user.expire === null ? 'نامحدود' : user.expire}</td>
+                    <td>${lastOnline}</td>
+                    <td>${viewButton}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    // دریافت داده‌ها از API با کلید امنیتی
+    const adminKey = new URLSearchParams(window.location.search).get('key');
+    fetch(`/api/admin/users?key=${adminKey}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center">${data.error}</td></tr>`;
+                return;
+            }
+            allUsersData = data;
+            renderTable(allUsersData);
+        }).catch(error => {
+            console.error('Error fetching users:', error);
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">خطا در بارگذاری اطلاعات از سرور.</td></tr>';
+        });
+
+    // منطق جستجوی زنده
+    searchInput.addEventListener('keyup', () => {
+        const query = searchInput.value.toLowerCase().trim();
+        const filteredUsers = allUsersData.filter(user => 
+            (user.name && user.name.toLowerCase().includes(query)) ||
+            (user.uuid && user.uuid.toLowerCase().includes(query))
+        );
+        renderTable(filteredUsers);
+    });
+});
+</script>
 {% endblock %}
