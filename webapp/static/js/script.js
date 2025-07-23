@@ -63,6 +63,58 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+// --- Subscription Link & QR Code Logic ---
+        const copySubBtn = document.getElementById('copy-sub-btn');
+        const showQrBtn = document.getElementById('show-qr-btn');
+        const fullSubLinkInput = document.getElementById('full-sub-link');
+        const subLinkMasked = document.getElementById('sub-link-masked');
+
+        if (subLinkMasked) {
+            subLinkMasked.addEventListener('click', () => {
+                subLinkMasked.style.display = 'none';
+                fullSubLinkInput.style.display = 'block';
+                fullSubLinkInput.select();
+            });
+        }
+
+        if (copySubBtn) {
+            copySubBtn.addEventListener('click', () => {
+                fullSubLinkInput.style.display = 'block'; // Ensure it's visible to copy
+                fullSubLinkInput.select();
+                navigator.clipboard.writeText(fullSubLinkInput.value).then(() => {
+                    const originalIcon = copySubBtn.innerHTML;
+                    copySubBtn.innerHTML = '<i class="ri-check-line"></i>';
+                    setTimeout(() => { copySubBtn.innerHTML = originalIcon; }, 2000);
+                });
+            });
+        }
+        
+        const modal = document.getElementById('qr-modal');
+        if (showQrBtn && modal) {
+            const closeBtn = modal.querySelector('.close-button');
+            const qrcodeContainer = document.getElementById('qrcode-container');
+
+            showQrBtn.addEventListener('click', () => {
+                qrcodeContainer.innerHTML = ''; // Clear previous QR code
+                new QRCode(qrcodeContainer, {
+                    text: fullSubLinkInput.value,
+                    width: 256,
+                    height: 256,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+                modal.style.display = 'block';
+            });
+
+            closeBtn.onclick = () => { modal.style.display = 'none'; }
+            window.onclick = (event) => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        }
+
         const trafficCard = document.querySelector('.total-traffic-card[data-used-gb]');
         if (trafficCard && typeof ApexCharts !== 'undefined') {
             const used = parseFloat(trafficCard.dataset.usedGb) || 0;

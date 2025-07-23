@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}آموزش و نرم‌افزارها{% endblock %}
+{% block page_content %}
+    {% include 'partials/_header.html' with page_title='آموزش و نرم‌افزارها' %}
+    
+    <h3 class="section-title">نرم‌افزارهای پیشنهادی</h3>
+    <section class="details-grid">
+        <div class="info-card">
+            <h4>اندروید</h4>
+            <p>برای سیستم عامل اندروید می‌توانید از V2rayNG استفاده کنید.</p>
+        </div>
+        <div class="info-card">
+            <h4>ویندوز</h4>
+            <p>برای سیستم عامل ویندوز می‌توانید از Nekoray استفاده کنید.</p>
+        </div>
+         <div class="info-card">
+            <h4>iOS</h4>
+            <p>برای سیستم عامل iOS می‌توانید از FoXray یا Streisand استفاده کنید.</p>
+        </div>
+    </section>
+
+    <h3 class="section-title">راهنمای اتصال</h3>
+     <section class="info-card">
+        <p>برای اتصال، کافیست لینک اشتراک خود را از صفحه "لینک‌های اتصال" کپی کرده و در نرم‌افزار مربوطه وارد (Import) کنید.</p>
+    </section>
+{% endblock %}

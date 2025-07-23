@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}لینک‌های اتصال{% endblock %}
+{% block page_content %}
+    {% include 'partials/_header.html' with page_title='لینک‌های اتصال' %}
+    
+    <div class="info-card link-list">
+        <div class="link-item">
+            <div class="link-info">
+                <i class="ri-links-line"></i>
+                <span>لینک اشتراک</span>
+            </div>
+            <div class="link-actions">
+                <button class="action-btn qr-btn"><i class="ri-qr-code-line"></i> QR کد</button>
+                <button class="action-btn copy-btn"><i class="ri-file-copy-line"></i> کپی</button>
+            </div>
+        </div>
+        <div class="link-item">
+            <div class="link-info">
+                <i class="ri-base-station-line"></i>
+                <span>کانفیگ VLESS</span>
+            </div>
+            <div class="link-actions">
+                <button class="action-btn qr-btn"><i class="ri-qr-code-line"></i> QR کد</button>
+                <button class="action-btn copy-btn"><i class="ri-file-copy-line"></i> کپی</button>
+            </div>
+        </div>
+        <div class="link-item">
+            <div class="link-info">
+                <i class="ri-base-station-line"></i>
+                <span>کانفیگ Reality</span>
+            </div>
+            <div class="link-actions">
+                <button class="action-btn qr-btn"><i class="ri-qr-code-line"></i> QR کد</button>
+                <button class="action-btn copy-btn"><i class="ri-file-copy-line"></i> کپی</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -3,6 +3,7 @@
 {% block title %}داشبورد کاربری{% endblock %}
 
 {% block page_content %}
+    {# FIX: The 'with' statement is now correctly inside the include tag #}
     {% include 'partials/_header.html' with page_title='داشبورد کاربری' %}
     
     <section class="info-grid">

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}خرید سرویس{% endblock %}
+{% block page_content %}
+    {% include 'partials/_header.html' with page_title='خرید و تمدید سرویس' %}
+    
+    <h3 class="section-title">🚀 پلن‌های ترکیبی (پیشنهادی)</h3>
+    <section class="details-grid">
+        {% for plan in plans if plan.type == 'combined' %}
+        <div class="info-card panel-card">
+            <div class="panel-header"><h4>{{ plan.name }}</h4></div>
+            <ul class="server-stats">
+                {% if plan.total_volume %}<li><div class="stat-label"><i class="ri-database-2-line"></i><span>حجم کل</span></div><span class="stat-value">{{ plan.total_volume }}</span></li>{% endif %}
+                {% if plan.volume_de %}<li><div class="stat-label"><span class="fi fi-de"></span><span>&nbsp; آلمان</span></div><span class="stat-value">{{ plan.volume_de }}</span></li>{% endif %}
+                {% if plan.volume_fr %}<li><div class="stat-label"><span class="fi fi-fr"></span><span>&nbsp; فرانسه</span></div><span class="stat-value">{{ plan.volume_fr }}</span></li>{% endif %}
+                {% if plan.duration %}<li><div class="stat-label"><i class="ri-time-line"></i><span>مدت زمان</span></div><span class="stat-value">{{ plan.duration }}</span></li>{% endif %}
+            </ul>
+            <a href="{{ support_link }}" class="btn-action full-width-btn" target="_blank">خرید و مشاوره</a>
+        </div>
+        {% endfor %}
+    </section>
+    
+     <h3 class="section-title">پلن‌های اختصاصی</h3>
+     <section class="details-grid">
+        {% for plan in plans if plan.type != 'combined' %}
+        <div class="info-card panel-card">
+            <div class="panel-header"><h4>{{ plan.name }}</h4></div>
+             <ul class="server-stats">
+                <li><div class="stat-label"><i class="ri-database-2-line"></i><span>حجم</span></div><span class="stat-value">{{ plan.volume_de or plan.volume_fr }}</span></li>
+                <li><div class="stat-label"><i class="ri-time-line"></i><span>مدت زمان</span></div><span class="stat-value">{{ plan.duration }}</span></li>
+            </ul>
+            <a href="{{ support_link }}" class="btn-action full-width-btn" target="_blank">خرید و مشاوره</a>
+        </div>
+        {% endfor %}
+    </section>
+{% endblock %}
