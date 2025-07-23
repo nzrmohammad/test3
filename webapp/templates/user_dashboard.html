@@ -3,7 +3,8 @@
 {% block title %}داشبورد کاربری{% endblock %}
 
 {% block page_content %}
-    {% include 'partials/_header.html' with page_title='داشبورد کاربری' %}
+    {% set page_title = 'داشبورد کاربری' %}
+    {% include 'partials/_header.html' %}
     
     <section class="info-grid">
         <div class="info-card">

@@ -1,114 +1,82 @@
 {% extends "base.html" %}
 
-{% block title %}داشبورد کاربری{% endblock %}
+{% block title %}نمودار مصرف{% endblock %}
 
 {% block page_content %}
-    {# FIX: The 'with' statement is now correctly inside the include tag #}
-    {% include 'partials/_header.html' with page_title='داشبورد کاربری' %}
-    
-    <section class="info-grid">
-        <div class="info-card">
-            <div class="card-header"><i class="ri-shield-check-line icon"></i><span>وضعیت سرویس</span></div>
-            <div class="card-content">
-                <span class="status-badge {{ 'status-active' if user.is_active else 'status-inactive' }}">
-                    {{ 'فعال' if user.is_active else 'غیرفعال' }}
-                </span>
-            </div>
-        </div>
-        <div class="info-card">
-            <div class="card-header"><i class="ri-calendar-event-line icon"></i><span>تاریخ انقضا</span></div>
-            <div class="card-content">
-                <span>{{ user.expire_shamsi }}</span>
-                <small>({{ user.expire }} روز باقیمانده)</small>
-            </div>
-        </div>
-        <div class="info-card">
-            <div class="card-header"><i class="ri-database-2-line icon"></i><span>حجم کل</span></div>
-            <div class="card-content">
-                <span>{{ "%.1f" | format(user.current_usage_GB) }} / {{ "%.1f" | format(user.usage_limit_GB) }} <small>GB</small></span>
-                 <div class="progress-bar-container main-progress">
-                    <div class="progress-bar">
-                        <div class="progress" style="width: {{ user.usage_percentage | default(0) }}%;"></div>
-                    </div>
+<div class="main-wrapper">
+
+    {% include 'partials/_sidebar_user.html' %}
+
+    <div class="main-content">
+        {% set page_title = 'نمودار مصرف روزانه' %}
+        {% include 'partials/_header.html' %}
+
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header">
+                    <h3>نمودار مصرف ۳۰ روز گذشته</h3>
+                </div>
+                <div class="card-body">
+                    <div id="usageChart"></div>
                 </div>
             </div>
         </div>
-        <div class="info-card">
-            <div class="card-header"><i class="ri-cake-2-line icon"></i><span>شمارنده تولد</span></div>
-            <div class="card-content">
-                {% if user.days_until_birthday is not none %}
-                    <span>{{ user.days_until_birthday }}</span>
-                    <small>روز تا تولد شما</small>
-                {% else %}
-                    <span>-</span>
-                    <small>تاریخ ثبت نشده</small>
-                {% endif %}
-            </div>
-        </div>
-    </section>
+    </div>
+</div>
 
-    <h3 class="section-title">جزئیات سرورها</h3>
-    <section class="details-grid">
-        {% if user.breakdown and user.breakdown.hiddify %}
-        <div class="info-card panel-card">
-            <div class="panel-header">
-                <span class="fi fi-de"></span>
-                <h4>سرور آلمان</h4>
-            </div>
-            <ul class="server-stats">
-                <li>
-                    <div class="stat-label"><i class="ri-database-2-line"></i><span>حجم</span></div>
-                    <span class="stat-value">{{ "%.1f" | format(user.breakdown.hiddify.current_usage_GB) }} / {{ "%.1f" | format(user.breakdown.hiddify.usage_limit_GB) }} GB</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-history-line"></i><span>مصرف روزانه</span></div>
-                    <span class="stat-value">{{ user.breakdown.hiddify.daily_usage_formatted }}</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div>
-                    <span class="stat-value">{{ user.breakdown.hiddify.last_online_shamsi | default('نامشخص', true) }}</span>
-                </li>
-                 <li>
-                    <div class="stat-label"><i class="ri-fire-fill"></i><span>درصد مصرف</span></div>
-                    <div class="stat-value progress-bar-container">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ user.breakdown.hiddify.usage_percentage | default(0) }}%;"></div>
-                        </div>
-                    </div>
-                </li>
-            </ul>
-        </div>
-        {% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // دیتا به صورت JSON از سمت سرور به اینجا تزریق می‌شود
+    const usageData = JSON.parse('{{ usage_data | tojson | safe }}');
 
-        {% if user.breakdown and user.breakdown.marzban %}
-        <div class="info-card panel-card">
-            <div class="panel-header">
-                <span class="fi fi-fr"></span>
-                <h4>سرور فرانسه</h4>
-            </div>
-            <ul class="server-stats">
-                 <li>
-                    <div class="stat-label"><i class="ri-database-2-line"></i><span>حجم</span></div>
-                    <span class="stat-value">{{ "%.1f" | format(user.breakdown.marzban.current_usage_GB) }} / {{ "%.1f" | format(user.breakdown.marzban.usage_limit_GB) }} GB</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-history-line"></i><span>مصرف روزانه</span></div>
-                    <span class="stat-value">{{ user.breakdown.marzban.daily_usage_formatted }}</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div>
-                    <span class="stat-value">{{ user.breakdown.marzban.last_online_shamsi | default('نامشخص', true) }}</span>
-                </li>
-                 <li>
-                    <div class="stat-label"><i class="ri-fire-fill"></i><span>درصد مصرف</span></div>
-                    <div class="stat-value progress-bar-container">
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ user.breakdown.marzban.usage_percentage | default(0) }}%;"></div>
-                        </div>
-                    </div>
-                </li>
-            </ul>
-        </div>
-        {% endif %}
-    </section>
+    var options = {
+        chart: {
+            type: 'area',
+            height: 350,
+            zoom: { enabled: false },
+            toolbar: { show: false },
+            fontFamily: 'IRANSans, sans-serif' // اطمینان حاصل کنید این فونت در CSS شما وجود دارد
+        },
+        series: usageData.series,
+        xaxis: {
+            categories: usageData.categories
+        },
+        yaxis: {
+            title: {
+                text: 'مگابایت'
+            },
+            labels: {
+                formatter: function (val) {
+                    return val.toFixed(0);
+                }
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            curve: 'smooth'
+        },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return val + " مگابایت";
+                }
+            }
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.7,
+                opacityTo: 0.9,
+                stops: [0, 90, 100]
+            }
+        },
+    };
+
+    var chart = new ApexCharts(document.querySelector("#usageChart"), options);
+    chart.render();
+});
+</script>
 {% endblock %}

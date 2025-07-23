@@ -1,39 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}لینک‌های اتصال{% endblock %}
+{% block title %}لینک‌های اشتراک{% endblock %}
+
 {% block page_content %}
-    {% include 'partials/_header.html' with page_title='لینک‌های اتصال' %}
-    
-    <div class="info-card link-list">
-        <div class="link-item">
-            <div class="link-info">
-                <i class="ri-links-line"></i>
-                <span>لینک اشتراک</span>
-            </div>
-            <div class="link-actions">
-                <button class="action-btn qr-btn"><i class="ri-qr-code-line"></i> QR کد</button>
-                <button class="action-btn copy-btn"><i class="ri-file-copy-line"></i> کپی</button>
-            </div>
-        </div>
-        <div class="link-item">
-            <div class="link-info">
-                <i class="ri-base-station-line"></i>
-                <span>کانفیگ VLESS</span>
-            </div>
-            <div class="link-actions">
-                <button class="action-btn qr-btn"><i class="ri-qr-code-line"></i> QR کد</button>
-                <button class="action-btn copy-btn"><i class="ri-file-copy-line"></i> کپی</button>
-            </div>
-        </div>
-        <div class="link-item">
-            <div class="link-info">
-                <i class="ri-base-station-line"></i>
-                <span>کانفیگ Reality</span>
-            </div>
-            <div class="link-actions">
-                <button class="action-btn qr-btn"><i class="ri-qr-code-line"></i> QR کد</button>
-                <button class="action-btn copy-btn"><i class="ri-file-copy-line"></i> کپی</button>
+<div class="main-wrapper">
+
+    {% set page_title = 'لینک های اشتراک' %}
+    {% include 'partials/_header.html' %}
+
+    <div class="main-content">
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header">
+                    <h3>لینک‌های شما</h3>
+                </div>
+                <div class="card-body">
+                    <p>برای استفاده از سرویس، لینک زیر را کپی کرده و در برنامه مورد نظر خود وارد کنید.</p>
+                    
+                    {% for link in sub_links %}
+                    <div class="subscription-link-container">
+                        <h4>{{ link.title }}</h4>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ link.url }}" readonly id="sub-link-{{ loop.index }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" onclick="copyToClipboard('#sub-link-{{ loop.index }}', '{{ link.title }}')">کپی</button>
+                            </div>
+                        </div>
+                        <div class="qr-code-container mt-2">
+                             <img src="{{ qrcode(link.url) }}" alt="QR Code for {{ link.title }}">
+                        </div>
+                    </div>
+                    {% else %}
+                        <p>هیچ لینک اشتراکی برای شما یافت نشد.</p>
+                    {% endfor %}
+
+                </div>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+function copyToClipboard(elementId, title) {
+    var copyText = document.querySelector(elementId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("لینک " + title + " کپی شد!");
+}
+</script>
 {% endblock %}
