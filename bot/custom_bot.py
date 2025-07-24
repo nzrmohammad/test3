@@ -9,7 +9,6 @@ from .config import LOG_LEVEL, ADMIN_IDS, BOT_TOKEN
 from .database import db
 from .scheduler import SchedulerManager
 from .user_handlers import register_user_handlers
-from .admin_router import register_admin_handlers
 from .callback_router import register_callback_router
 from .utils import initialize_utils
 
@@ -101,7 +100,6 @@ class HiddifyBot:
             logger.info("Registering handlers...")
 
             register_user_handlers(self.bot)
-            register_admin_handlers(self.bot)
             register_callback_router(self.bot)
             logger.info("✅ Handlers registered")
 
