@@ -164,6 +164,7 @@
         padding: 0.5rem;
         color: var(--text-secondary);
     }
+
 </style>
 {% endblock %}
 
@@ -226,10 +227,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('user-search-input');
     const panelFilter = document.getElementById('panel-filter');
     const paginationContainer = document.getElementById('pagination-container');
-    const adminKey = new URLSearchParams(window.location.search).get('key');
-    let allUsersData = [];
+    const tableTitle = document.querySelector('.page-header h3');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminKey = urlParams.get('key');
+    const initialUrlFilter = urlParams.get('filter') || 'all'; 
+
     let currentPage = 1;
-    const USERS_PER_PAGE = 15;
+    let currentSearchQuery = '';
+    let currentPanelFilter = 'all';
+
+    const filterTitles = {
+        'all': 'لیست کل کاربران',
+        'active': 'لیست کاربران فعال',
+        'online': 'لیست کاربران آنلاین',
+        'expiring_soon': 'لیست کاربران در آستانه انقضا'
+    };
+    if (filterTitles[initialUrlFilter]) {
+        tableTitle.textContent = filterTitles[initialUrlFilter];
+    }
+
+    function loadUsers(page = 1) {
+        currentPage = page;
+        const searchQuery = searchInput.value.trim();
+        const panel = panelFilter.value;
+        
+        tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 2rem;">درحال بارگذاری اطلاعات... <i class="ri-loader-4-line ri-spin"></i></td></tr>`;
+        
+        const url = `/admin/api/users?key=${adminKey}&page=${page}&per_page=15&search=${searchQuery}&panel=${panel}&filter=${initialUrlFilter}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                renderTable(data.users); 
+                renderPagination(data.pagination);
+            }).catch(error => {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger" style="padding: 2rem;">خطا در بارگذاری کاربران: ${error.message}</td></tr>`;
+                paginationContainer.innerHTML = '';
+            });
+    }
 
     const getModal = (id) => document.getElementById(id);
     const showModal = (modal) => { modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10); };
@@ -258,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             const expiryText = user.expire_shamsi ? `${user.expire_shamsi} <small class='text-secondary'>(${user.expire} روز)</small>` : 'نامحدود';
             const row = document.createElement('tr');
-            row.dataset.uuid = user.uuid; // Store uuid for easy access
+            row.dataset.uuid = user.uuid;
             row.innerHTML = `
                 <td>${nameButton}</td>
                 <td>${panelIcons.trim()}</td>
@@ -300,9 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             pagesToShow.push(1);
             if (current > 3) pagesToShow.push('...');
-            for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
-                pagesToShow.push(i);
-            }
+            for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pagesToShow.push(i);
             if (current < total - 2) pagesToShow.push('...');
             pagesToShow.push(total);
         }
@@ -321,29 +356,6 @@ document.addEventListener('DOMContentLoaded', function() {
         paginationContainer.appendChild(createBtn(current + 1, 'بعدی', current === total));
     }
 
-
-    function loadUsers(page = 1) {
-        currentPage = page;
-        const searchQuery = searchInput.value.trim();
-        const panel = panelFilter.value;
-        tableBody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 2rem;">درحال بارگذاری اطلاعات... <i class="ri-loader-4-line ri-spin"></i></td></tr>`;
-        
-        const url = `/admin/api/users?key=${adminKey}&page=${page}&per_page=${USERS_PER_PAGE}&search=${searchQuery}&panel=${panel}`;
-        
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) throw new Error(data.error);
-                allUsersData = data.users;
-                renderTable(data.users);
-                renderPagination(data.pagination);
-            }).catch(error => {
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger" style="padding: 2rem;">خطا در بارگذاری کاربران: ${error.message}</td></tr>`;
-                paginationContainer.innerHTML = '';
-            });
-    }
-    
-    // modal functions...
     function populateDetailsModal(user) {
         const modal = getModal('user-details-modal');
         const statusIcon = user.is_active ? '🟢' : '🔴', statusText = user.is_active ? 'فعال' : 'غیرفعال';
@@ -385,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.querySelector('.close-btn').addEventListener('click', () => hideModal(modal));
         showModal(modal);
     }
-    
     function openAddUserModal() {
         const modal = getModal('add-user-modal');
         modal.innerHTML = `
@@ -496,7 +507,6 @@ document.addEventListener('DOMContentLoaded', function() {
         attachFormModalListeners(modal, 'edit-user-form', (e) => handleUpdateUserSubmit(e, user));
         showModal(modal);
     }
-    
     function attachFormModalListeners(modal, formId, submitHandler) {
         modal.querySelector('.close-btn').addEventListener('click', () => hideModal(modal));
         const footerCloseBtn = modal.querySelector('.close-btn-footer');
@@ -616,8 +626,6 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
         }
     }
-
-
     function openDeleteModal(user) {
         const modal = getModal('delete-confirm-modal');
         modal.innerHTML = `

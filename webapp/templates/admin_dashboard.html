@@ -5,17 +5,17 @@
 
 {% block extra_css %}
 <style>
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr; /* دو ستون با عرض نابرابر */
-        gap: 1.5rem;
-        align-items: flex-start;
-    }
-    .main-column { display: flex; flex-direction: column; gap: 1.5rem; }
-    .sidebar-column { display: flex; flex-direction: column; gap: 1.5rem; }
-
-    @media (max-width: 1024px) {
-        .dashboard-grid { grid-template-columns: 1fr; }
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: flex-start; }
+    .main-column, .sidebar-column { display: flex; flex-direction: column; gap: 1.5rem; }
+    .user-list .usage { color: var(--accent-color); font-weight: 500; }
+    .user-list.multi-column { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.25rem 1.5rem; padding: 25px; }
+    .user-list.multi-column .user-list-item { padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+    .user-list.multi-column .user-list-item:nth-last-child(-n+2) { border-bottom: none; }
+    @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) {
+        .user-list.multi-column { grid-template-columns: 1fr; }
+        .user-list.multi-column .user-list-item { border-bottom: 1px solid var(--border-color) !important; }
+        .user-list.multi-column .user-list-item:last-child { border-bottom: none !important; }
     }
 </style>
 {% endblock %}
@@ -25,9 +25,9 @@
 
     <section class="info-grid" style="margin-bottom: 1.5rem;">
         <div class="info-card"><div class="card-header"><i class="ri-group-line icon"></i><span>کل کاربران</span></div><div class="card-content">{{ stats.total_users | default('...') }}</div></div>
-        <div class="info-card"><div class="card-header"><i class="ri-user-follow-line icon"></i><span>کاربران فعال</span></div><div class="card-content">{{ stats.active_users | default('...') }}</div></div>
-        <div class="info-card"><div class="card-header"><i class="ri-alarm-warning-line icon"></i><span>در آستانه انقضا</span></div><div class="card-content">{{ stats.expiring_soon_count | default('...') }}</div></div>
-        <div class="info-card"><div class="card-header"><i class="ri-wifi-line icon"></i><span>کاربران آنلاین</span></div><div class="card-content">{{ stats.online_users | default('...') }}</div></div>
+        <a href="{{ url_for('admin.user_management_page', key=admin_key, filter='active') }}" class="info-card clickable"><div class="card-header"><i class="ri-user-follow-line icon"></i><span>کاربران فعال</span></div><div class="card-content">{{ stats.active_users | default('...') }}</div></a>
+        <a href="{{ url_for('admin.user_management_page', key=admin_key, filter='expiring_soon') }}" class="info-card clickable"><div class="card-header"><i class="ri-alarm-warning-line icon"></i><span>در آستانه انقضا (۷ روز)</span></div><div class="card-content">{{ stats.expiring_soon_count | default('...') }}</div></a>
+        <a href="{{ url_for('admin.user_management_page', key=admin_key, filter='online') }}" class="info-card clickable"><div class="card-header"><i class="ri-wifi-line icon"></i><span>کاربران آنلاین (۳دقیقه)</span></div><div class="card-content">{{ stats.online_users | default('...') }}</div></a>
         <div class="info-card"><div class="card-header"><i class="ri-download-cloud-2-line icon"></i><span>مصرف امروز</span></div><div class="card-content">{{ stats.total_usage_today | default('...') }}</div></div>
         <div class="info-card"><div class="card-header"><i class="ri-user-add-line icon"></i><span>کاربران جدید (۲۴س)</span></div><div class="card-content">{{ stats.new_users_today | default('...') }}</div></div>
     </section>
@@ -35,25 +35,67 @@
     <div class="dashboard-grid">
         <div class="main-column">
             <div class="info-card">
-                <div class="card-header" style="margin-bottom: 1.5rem;"><i class="ri-bar-chart-line icon"></i><span>نمودار مصرف ۷ روز گذشته (GB)</span></div>
+                <div class="card-header" style="margin-bottom: 1.5rem;"><i class="ri-bar-chart-line icon"></i><span>مصرف کاربران جدید (GB)</span></div>
                 <div id="usage-chart"></div>
             </div>
-
-            <!-- <div class="data-table-container">
-                <div class="table-header"><h3>لیست کل کاربران</h3><div class="search-box"><i class="ri-search-line"></i><input type="text" id="user-search-input" placeholder="جستجو..."></div></div>
-                <div class="table-responsive" style="max-height: 400px;"><table class="data-table"><thead><tr><th>نام</th><th>وضعیت</th><th>مصرف/کل(GB)</th><th>اعتبار(روز)</th><th>عملیات</th></tr></thead><tbody id="users-table-body"></tbody></table></div>
-            </div> -->
-        </div>
+            <div class="info-card">
+                 <div class="card-header"><i class="ri-pie-chart-2-line icon"></i><span>تفکیک پنل‌ها (کاربران فعال)</span></div>
+                 <div id="panel-distribution-chart" style="min-height: 310px;"></div>
+            </div>
+            <div class="info-card">
+                 <div class="card-header"><i class="ri-wifi-line icon"></i><span>لیست کاربران آنلاین</span></div>
+                 <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; padding-top: 1rem;">
+                     <div>
+                         <h4 style="text-align: center; margin-bottom: 1rem;">آنلاین در Hiddify 🇩🇪</h4>
+                         <ul class="user-list">
+                             {% for user in online_users_hiddify %}<li class="user-list-item"><span>{{ user.name }}</span></li>{% else %}<li>-</li>{% endfor %}
+                         </ul>
+                     </div>
+                     <div>
+                         <h4 style="text-align: center; margin-bottom: 1rem;">آنلاین در Marzban 🇫🇷</h4>
+                         <ul class="user-list">
+                             {% for user in online_users_marzban %}<li class="user-list-item"><span>{{ user.name }}</span></li>{% else %}<li>-</li>{% endfor %}
+                         </ul>
+                     </div>
+                 </div>
+            </div>
+            </div>
 
         <div class="sidebar-column">
             <div class="info-card">
-                <div class="card-header"><i class="ri-user-add-line icon"></i><span>کاربران جدید</span></div>
-                <ul class="user-list">{% for user in recent_users %}<li class="user-list-item"><span>{{user.name}}</span><span class="date">{{ user.created_at.strftime('%Y/%m/%d') if user.created_at }}</span></li>{% else %}<li>کاربر جدیدی یافت نشد.</li>{% endfor %}</ul>
+                 <div class="card-header"><i class="ri-heart-pulse-line icon"></i><span>وضعیت سلامت سیستم</span></div>
+                 <ul class="user-list">
+                    <li class="user-list-item"><span>اتصال به پنل Hiddify</span><span class="status">{% if system_health.hiddify %}✅{% else %}❌{% endif %}</span></li>
+                    <li class="user-list-item"><span>اتصال به پنل Marzban</span><span class="status">{% if system_health.marzban %}✅{% else %}❌{% endif %}</span></li>
+                    <li class="user-list-item"><span>اتصال به دیتابیس</span><span class="status">{% if system_health.database %}✅{% else %}❌{% endif %}</span></li>
+                 </ul>
             </div>
-
+            <div class="info-card">
+                <div class="card-header"><i class="ri-user-add-line icon"></i><span>کاربران جدید</span></div>
+                <ul class="user-list">
+                    {% for user in recent_users %}<li class="user-list-item"><span>{{ user.name }}</span><span class="date">{{ user.created_at.strftime('%Y/%m/%d') if user.created_at }}</span></li>{% else %}<li>کاربر جدیدی یافت نشد.</li>{% endfor %}
+                </ul>
+            </div>
+            <div class="info-card">
+                <div class="card-header"><i class="ri-fire-line icon"></i><span>پرمصرف‌ترین‌های امروز</span></div>
+                <ul class="user-list">
+                    {% for user in top_consumers_today %}
+                        {% if user.get('daily_usage_gb', 0) > 0 %}
+                        <li class="user-list-item">
+                            <span>{{ user.name }}</span>
+                            <span class="usage">{{ "%.2f"|format(user.get('daily_usage_gb', 0)) }} GB</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li>هنوز مصرفی ثبت نشده.</li>
+                    {% endfor %}
+                </ul>
+            </div>
             <div class="info-card">
                 <div class="card-header"><i class="ri-time-line icon"></i><span>در آستانه انقضا</span></div>
-                <ul class="user-list">{% for user in expiring_soon_users %}<li class="user-list-item"><span>{{user.name}}</span><span class="days">{{user.expire}} روز</span></li>{% else %}<li>کاربری یافت نشد.</li>{% endfor %}</ul>
+                <ul class="user-list multi-column">
+                    {% for user in expiring_soon_users %}<li class="user-list-item"><span>{{ user.name }}</span><span class="days">{{ user.expire }} روز</span></li>{% else %}<li style="grid-column: 1 / -1;">کاربری یافت نشد.</li>{% endfor %}
+                </ul>
             </div>
         </div>
     </div>
@@ -61,52 +103,12 @@
 
 {% block extra_js %}
 <script>
-// --- اسکریپت جدول کاربران (مشابه قبل، فقط فیلدها خلاصه‌تر شده) ---
-const tableBody = document.getElementById('users-table-body');
-const searchInput = document.getElementById('user-search-input');
-const adminKey = new URLSearchParams(window.location.search).get('key');
-let allUsersData = [];
-function renderTable(users) { /* ... کد این تابع مشابه قبل است ... */ }
-function loadUsers() { /* ... کد fetch مشابه قبل است ... */ }
-// loadUsers(); // فراخوانی اولیه
-
-// --- اسکریپت جدید برای نمودار ---
-const chartOptions = {
-    series: [{ name: "مصرف (GB)", data: {{ usage_chart_data.data | tojson }} }],
-    chart: { type: 'area', height: 300, toolbar: { show: false }, fontFamily: 'Vazirmatn, sans-serif' },
-    dataLabels: { enabled: false },
-    stroke: { curve: 'smooth' },
-    xaxis: { categories: {{ usage_chart_data.labels | tojson }} },
-    tooltip: { theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light' }
-};
-const chart = new ApexCharts(document.querySelector("#usage-chart"), chartOptions);
-chart.render();
-
-// کدهای کامل جاوا اسکریپت برای جدول
-function renderTable(users) {
-    tableBody.innerHTML = '';
-    if (users.length === 0) { tableBody.innerHTML = '<tr><td colspan="5" class="text-center">هیچ کاربری یافت نشد.</td></tr>'; return; }
-    users.forEach(user => {
-        const usage = `${(user.current_usage_GB || 0).toFixed(1)} / ${(user.usage_limit_GB || 0).toFixed(1)}`;
-        const statusClass = user.is_active ? 'status-active' : 'status-inactive';
-        const viewButton = `<a href="/user/${user.uuid}" class="btn-action">مشاهده</a>`;
-        const row = `<tr><td>${user.name || 'ناشناس'}</td><td><span class="status-badge ${statusClass}">${user.is_active ? 'فعال' : 'غیرفعال'}</span></td><td>${usage}</td><td>${user.expire === null ? 'نامحدود' : user.expire}</td><td>${viewButton}</td></tr>`;
-        tableBody.innerHTML += row;
-    });
-}
-function loadUsers() {
-    fetch(`/admin/api/users?key=${adminKey}`)
-    .then(response => response.json())
-    .then(data => {
-        allUsersData = data;
-        renderTable(allUsersData);
-    }).catch(error => { console.error('Error:', error); tableBody.innerHTML = '<tr><td colspan="5" class="text-center">خطا در بارگذاری.</td></tr>'; });
-}
-loadUsers();
-searchInput.addEventListener('keyup', () => {
-    const query = searchInput.value.toLowerCase().trim();
-    const filteredUsers = allUsersData.filter(user => (user.name && user.name.toLowerCase().includes(query)) || (user.uuid && user.uuid.toLowerCase().includes(query)));
-    renderTable(filteredUsers);
+document.addEventListener("DOMContentLoaded", () => {
+    const isDarkTheme = document.body.classList.contains('dark-theme');
+    const usageChartOptions = { series: [{ name: "مصرف کل (GB)", data: {{ usage_chart_data.data | tojson | safe }} }], chart: { type: 'area', height: 250, toolbar: { show: false }, fontFamily: 'Vazirmatn, sans-serif' }, dataLabels: { enabled: false }, stroke: { curve: 'smooth' }, xaxis: { categories: {{ usage_chart_data.labels | tojson | safe }} }, tooltip: { theme: isDarkTheme ? 'dark' : 'light' } };
+    if (document.querySelector("#usage-chart")) { new ApexCharts(document.querySelector("#usage-chart"), usageChartOptions).render(); }
+    const panelDistOptions = { series: {{ panel_distribution_data.data | tojson | safe }}, labels: {{ panel_distribution_data.labels | tojson | safe }}, chart: { type: 'donut', height: 310, fontFamily: 'Vazirmatn, sans-serif' }, plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'مجموع فعال' } } } } }, dataLabels: { enabled: true, formatter: function (val) { return Math.round(val) + "%" } }, legend: { position: 'bottom' }, tooltip: { theme: isDarkTheme ? 'dark' : 'light' } };
+    if (document.querySelector("#panel-distribution-chart")) { new ApexCharts(document.querySelector("#panel-distribution-chart"), panelDistOptions).render(); }
 });
 </script>
 {% endblock %}

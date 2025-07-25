@@ -350,7 +350,11 @@ h3.section-title {
     color: var(--text-color);
 }
 
-.table-responsive { max-height: 60vh; overflow-y: auto; }
+.table-responsive {
+    /* max-height: 60vh; */ /* این خط را کامنت یا حذف کنید تا محدودیت ارتفاع برداشته شود */
+    overflow-y: visible; /* این باعث می‌شود محتوا از کادر بیرون زده و اسکرول به صفحه اصلی منتقل شود */
+    overflow-x: auto;   /* این خط را برای حفظ اسکرول افقی در موبایل اضافه یا حفظ کنید */
+}
 
 .data-table { width: 100%; border-collapse: collapse; }
 

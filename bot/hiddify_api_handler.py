@@ -29,6 +29,9 @@ class HiddifyAPIHandler:
         url = f"{self.base_url}{endpoint}"
         try:
             response = self.session.request(method, url, timeout=API_TIMEOUT, **kwargs)
+            if response.status_code == 401:
+                logger.error(f"Hiddify API request failed: 401 Unauthorized. Check your ADMIN_UUID.")
+                return None
             response.raise_for_status()
             return response.json() if response.status_code != 204 else True
         except requests.exceptions.RequestException as e:
@@ -128,5 +131,20 @@ class HiddifyAPIHandler:
         except requests.exceptions.RequestException as e:
             logger.error(f"Hiddify API request for panel info failed: {e}")
             return None
+
+    def check_connection(self) -> bool:
+        """برای بررسی صحت اتصال و کلید API، اطلاعات پنل را درخواست می‌کند."""
+        logger.info("Checking Hiddify panel connection...")
+        # از یک اندپوینت سبک برای تست اتصال استفاده می‌کنیم
+        panel_info_url = f"{HIDDIFY_DOMAIN.rstrip('/')}/{ADMIN_PROXY_PATH.strip('/')}/api/v2/panel/info/"
+        try:
+            # از یک تایم‌اوت کوتاه برای این تست استفاده می‌کنیم
+            response = self.session.get(panel_info_url, timeout=5)
+            response.raise_for_status()
+            logger.info("Hiddify connection check successful.")
+            return True
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Hiddify connection check FAILED: {e}")
+            return False
 
 hiddify_handler = HiddifyAPIHandler()

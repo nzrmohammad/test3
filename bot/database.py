@@ -510,5 +510,46 @@ class DatabaseManager:
             """
             rows = c.execute(query).fetchall()
             return [dict(r) for r in rows]
+        
+    def check_connection(self) -> bool:
+        """بررسی می‌کند که آیا اتصال به دیتابیس برقرار است یا نه."""
+        try:
+            with self._conn() as c:
+                c.execute("SELECT 1")
+            logger.info("Database connection check successful.")
+            return True
+        except Exception as e:
+            logger.error(f"Database connection check FAILED: {e}")
+            return False
+
+    def get_all_daily_usage_since_midnight(self) -> Dict[str, Dict[str, float]]:
+        """
+        مصرف روزانه تمام UUID ها را از نیمه‌شب به صورت یک‌جا محاسبه می‌کند.
+        خروجی به صورت یک دیکشنری از UUID به مصرف است. {'uuid_str': {'hiddify': 1.2, 'marzban': 0.5}}
+        """
+        tehran_tz = pytz.timezone("Asia/Tehran")
+        today_midnight_tehran = datetime.now(tehran_tz).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_midnight_utc = today_midnight_tehran.astimezone(pytz.utc)
+        
+        query = """
+            SELECT
+                uu.uuid,
+                MAX(s.hiddify_usage_gb) - MIN(s.hiddify_usage_gb) as h_diff,
+                MAX(s.marzban_usage_gb) - MIN(s.marzban_usage_gb) as m_diff
+            FROM usage_snapshots s
+            JOIN user_uuids uu ON s.uuid_id = uu.id
+            WHERE s.taken_at >= ?
+            GROUP BY uu.uuid;
+        """
+        
+        usage_map = {}
+        with self._conn() as c:
+            rows = c.execute(query, (today_midnight_utc,)).fetchall()
+            for row in rows:
+                usage_map[row['uuid']] = {
+                    'hiddify': max(0, row['h_diff'] or 0.0),
+                    'marzban': max(0, row['m_diff'] or 0.0)
+                }
+        return usage_map
 
 db = DatabaseManager()

@@ -55,9 +55,10 @@ class MarzbanAPIHandler:
                 logger.info("Marzban: Successfully obtained new access token.")
                 self.session.headers.update({"Authorization": f"Bearer {self.access_token}", "Accept": "application/json"})
                 return True
+            logger.error("Marzban: Failed to get access token, token not found in response.")
             return False
         except requests.exceptions.RequestException as e:
-            logger.error(f"Marzban: Failed to get access token: {e}")
+            logger.error(f"Marzban: Failed to get access token: {e}", exc_info=True)
             self.access_token = None
             return False
         
@@ -76,6 +77,7 @@ class MarzbanAPIHandler:
             if response.status_code == 401 and retry:
                 logger.warning("Marzban: Access token expired or invalid. Retrying to get a new one.")
                 if self._get_access_token():
+                    kwargs['headers'] = self.session.headers
                     return self._request(method, endpoint, retry=False, **kwargs)
 
             response.raise_for_status()
@@ -85,7 +87,7 @@ class MarzbanAPIHandler:
             return response.json()
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Marzban API request failed: {method} {url} - {e}")
+            logger.error(f"Marzban API request failed: {method} {url} - Error: {e}", exc_info=True)
             return None
 
     def add_user(self, user_data: dict) -> dict | None:
@@ -269,5 +271,11 @@ class MarzbanAPIHandler:
         except requests.exceptions.RequestException as e:
             logger.error(f"Marzban: Failed to reset usage for user '{username}': {e}")
             return False
+
+    def check_connection(self) -> bool:
+        """برای بررسی صحت اتصال و اطلاعات ورود، وضعیت سیستم را درخواست می‌کند."""
+        logger.info("Checking Marzban panel connection...")
+        # تابع _get_access_token خودش اتصال را تست می‌کند
+        return self._get_access_token()
 
 marzban_handler = MarzbanAPIHandler()
