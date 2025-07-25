@@ -2,6 +2,29 @@
 
 {% block title %}نمودارهای مصرف{% endblock %}
 
+{% block extra_css %}
+<style>
+    .card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: 0 2px 10px var(--shadow-color);
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    .card-body {
+        padding: 1.25rem;
+    }
+</style>
+{% endblock %}
+
 {% block page_content %}
     {% set page_title = 'تحلیل مصرف' %}
     {% include 'partials/_header.html' %}
@@ -32,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- بخش اول: رندر کردن نمودار مصرف روزانه ---
     try {
         const dailyChartData = {{ usage_data | tojson | safe }};
+        const isDark = document.body.classList.contains('dark-theme');
 
         if (!dailyChartData || !dailyChartData.series || dailyChartData.series.length === 0) {
             document.querySelector("#dailyUsageChart").innerHTML = "<p style='text-align:center; padding: 2rem;'>دیتایی برای نمودار مصرف روزانه یافت نشد.</p>";
@@ -39,12 +63,19 @@ document.addEventListener("DOMContentLoaded", function() {
             const dailyOptions = {
                 chart: { type: 'bar', height: 350, toolbar: { show: false }, fontFamily: 'Vazirmatn, sans-serif' },
                 series: dailyChartData.series,
-                xaxis: { categories: dailyChartData.categories },
-                yaxis: { title: { text: 'حجم مصرف (GB)', offsetX: -65 }, labels: { formatter: (val) => val.toFixed(2) } },
+                xaxis: { 
+                    categories: dailyChartData.categories,
+                    labels: { style: { colors: isDark ? '#9ca3af' : '#6b7280' } }
+                },
+                yaxis: { 
+                    title: { text: 'حجم مصرف (GB)' },
+                    labels: { formatter: (val) => val.toFixed(2), style: { colors: isDark ? '#9ca3af' : '#6b7280' } }
+                },
+                grid: { borderColor: isDark ? '#374151' : '#e5e7eb' },
                 plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
                 dataLabels: { enabled: false },
-                tooltip: { y: { formatter: (val) => val.toFixed(2) + " GB" }, theme: 'dark' },
-                legend: { position: 'top' }
+                tooltip: { y: { formatter: (val) => val.toFixed(2) + " GB" }, theme: isDark ? 'dark' : 'light' },
+                legend: { position: 'top', labels: { colors: isDark ? '#f9fafb' : '#111827' } }
             };
             const dailyChart = new ApexCharts(document.querySelector("#dailyUsageChart"), dailyOptions);
             dailyChart.render();
@@ -58,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
     try {
         const hiddifyUsage = {{ user.breakdown.hiddify.current_usage_GB | default(0) }};
         const marzbanUsage = {{ user.breakdown.marzban.current_usage_GB | default(0) }};
+        const isDark = document.body.classList.contains('dark-theme');
 
         if (hiddifyUsage === 0 && marzbanUsage === 0) {
             document.querySelector("#serverUsageDonutChart").innerHTML = "<p style='text-align:center; padding: 2rem;'>هنوز مصرفی برای نمایش در نمودار ثبت نشده است.</p>";
@@ -67,9 +99,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 chart: { type: 'donut', height: 350, fontFamily: 'Vazirmatn, sans-serif' },
                 labels: ['سرور آلمان (Hiddify)', 'سرور فرانسه (Marzban)'],
                 colors: ['#008FFB', '#00E396'],
-                legend: { position: 'top' },
-                tooltip: { y: { formatter: (val) => val.toFixed(2) + " GB" }, theme: 'dark' },
+                legend: { position: 'top', labels: { colors: isDark ? '#f9fafb' : '#111827' } },
+                tooltip: { y: { formatter: (val) => val.toFixed(2) + " GB" }, theme: isDark ? 'dark' : 'light' },
                 dataLabels: { enabled: true, formatter: (val, opts) => opts.w.config.series[opts.seriesIndex].toFixed(1) + " GB" },
+                stroke: { colors: [isDark ? '#1f2937' : '#ffffff'] }
             };
             const donutChart = new ApexCharts(document.querySelector("#serverUsageDonutChart"), donutOptions);
             donutChart.render();

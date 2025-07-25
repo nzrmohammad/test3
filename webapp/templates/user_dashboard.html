@@ -2,6 +2,117 @@
 
 {% block title %}داشبورد کاربری{% endblock %}
 
+{% block extra_css %}
+<style>
+    .birthday-card {
+        background: linear-gradient(135deg, #fceabb, #f8b500);
+        color: #3d2f00;
+    }
+    .birthday-card .icon {
+        color: #c69100;
+    }
+    .uuid-card, .expire-date-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px 20px;
+    }
+    .uuid-card {
+        justify-content: space-between;
+    }
+    .uuid-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .uuid-content .icon {
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+    }
+    .uuid-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        transition: all 0.2s ease-in-out;
+    }
+    .uuid-masked {
+        font-family: monospace;
+        font-size: 1rem;
+        letter-spacing: 1px;
+    }
+    .copy-btn {
+        background: none;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        transition: all 0.2s ease;
+    }
+    .copy-btn:hover {
+        background-color: var(--accent-color);
+        color: white;
+    }
+    .uuid-card .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .expire-date-card .icon {
+        font-size: 2rem;
+        color: #34d399;
+    }
+    .expire-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    .expire-date {
+        font-size: 1rem;
+        font-weight: bold;
+    }
+    .total-traffic-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        gap: 20px;
+        padding: 15px;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        margin-top: 25px;
+    }
+    .traffic-chart-container {
+        flex-shrink: 0;
+    }
+    .traffic-details {
+        flex-grow: 1;
+    }
+    .traffic-details .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 0.95rem;
+        border-bottom: 1px dashed var(--border-color);
+    }
+    .traffic-details .detail-item:last-child {
+        border-bottom: none;
+    }
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: normal;
+    }
+    .status-active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    .status-inactive {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+{% endblock %}
+
 {% block page_content %}
     {% set page_title = 'داشبورد کاربری' %}
     {% include 'partials/_header.html' %}

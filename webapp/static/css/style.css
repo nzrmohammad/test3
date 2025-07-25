@@ -6,8 +6,9 @@
     --sidebar-width-collapsed: 75px;
     --border-radius: 10px;
     --transition-speed: 0.3s;
-    --accent-color: #6d28d9;
-    --danger-color: #e53935;
+    --success-color: #22c55e;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
 }
 
 /* --- Theme Variables --- */
@@ -20,6 +21,8 @@ body {
     --sidebar-bg: #1f2937;
     --sidebar-text: #d1d5db;
     --sidebar-text-hover: #ffffff;
+    --input-bg: #fdfdff;
+    --shadow-color: rgba(0, 0, 0, 0.07);
 }
 
 body.dark-theme {
@@ -28,30 +31,35 @@ body.dark-theme {
     --text-color: #f9fafb;
     --text-secondary: #9ca3af;
     --border-color: #374151;
+    --input-bg: #2a2a2a;
+    --shadow-color: rgba(0, 0, 0, 0.2);
 }
 
 /* --- Base & Layout --- */
 body {
-    font-family: 'Vazirmatn', sans-serif;
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
-    font-size: 15px; /* فونت کمی بزرگ‌تر شد */
+    font-size: 15px;
     transition: background-color var(--transition-speed), color var(--transition-speed);
+    height: 100vh;
+    overflow: hidden;
 }
 
 .container {
     display: flex;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
 }
 
 .main-content {
     flex-grow: 1;
     padding: 25px;
-    overflow-y: auto;
+    overflow-y: auto;   /* اسکرول عمودی را فعال نگه می‌دارد */
+    overflow-x: hidden; /* جدید: از سرریز شدن محتوا در محور افقی جلوگیری می‌کند */
+    min-width: 0;
 }
-
 /* --- Header --- */
 .header {
     display: flex;
@@ -85,7 +93,6 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-
 
 /* --- Sidebar --- */
 .sidebar {
@@ -134,7 +141,7 @@ body {
     border-radius: var(--border-radius);
     margin-bottom: 10px;
     transition: all var(--transition-speed);
-    font-size: 0.95rem; /* فونت کمی بزرگ‌تر شد */
+    font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;
 }
@@ -175,7 +182,7 @@ body {
     margin-left: 0;
 }
 
-/* --- Components: Cards & Grids --- */
+/* --- Generic Components: Cards & Grids --- */
 h3.section-title {
     font-size: 1.1rem;
     margin-top: 25px;
@@ -210,94 +217,6 @@ h3.section-title {
 .card-content {
     font-size: 1rem;
     font-weight: bold;
-}
-.birthday-card {
-    background: linear-gradient(135deg, #fceabb, #f8b500);
-    color: #3d2f00;
-}
-.birthday-card .icon {
-    color: #c69100;
-}
-.uuid-card, .expire-date-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px 20px;
-}
-.uuid-card {
-    justify-content: space-between;
-}
-.uuid-content {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-.uuid-content .icon {
-    font-size: 1.5rem;
-    color: var(--text-secondary);
-}
-.uuid-label {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    transition: all 0.2s ease-in-out;
-}
-.uuid-masked {
-    font-family: monospace;
-    font-size: 1rem;
-    letter-spacing: 1px;
-}
-.copy-btn {
-    background: none;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 10px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-}
-.copy-btn:hover {
-    background-color: var(--accent-color);
-    color: white;
-}
-.expire-date-card .icon {
-    font-size: 2rem;
-    color: #34d399;
-}
-.expire-label {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-}
-.expire-date {
-    font-size: 1rem;
-    font-weight: bold;
-}
-.total-traffic-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    gap: 20px;
-    padding: 15px;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    margin-top: 25px;
-}
-.traffic-chart-container {
-    flex-shrink: 0;
-}
-.traffic-details {
-    flex-grow: 1;
-}
-.traffic-details .detail-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    font-size: 0.95rem;
-    border-bottom: 1px dashed var(--border-color);
-}
-.traffic-details .detail-item:last-child {
-    border-bottom: none;
 }
 .panel-card .panel-header {
     display: flex;
@@ -351,14 +270,11 @@ h3.section-title {
     height: 100%;
     border-radius: 50px;
 }
-.uuid-card .action-buttons {
-    display: flex;
-    gap: 10px;
-}
 
+/* --- Generic Modal (used for QR code on dashboard) --- */
 .modal {
-    display: none; 
-    position: fixed; 
+    display: none;
+    position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
@@ -368,7 +284,6 @@ h3.section-title {
     background-color: rgba(0,0,0,0.6);
     padding-top: 60px;
 }
-
 .modal-content {
     background-color: var(--card-bg);
     margin: 5% auto;
@@ -380,7 +295,6 @@ h3.section-title {
     text-align: center;
     position: relative;
 }
-
 .close-button {
     color: var(--text-secondary);
     position: absolute;
@@ -390,12 +304,10 @@ h3.section-title {
     font-weight: bold;
     cursor: pointer;
 }
-
 .close-button:hover,
 .close-button:focus {
     color: var(--danger-color);
 }
-
 #qrcode-container {
     padding: 20px;
     display: flex;
@@ -406,4 +318,106 @@ h3.section-title {
     max-width: 100%;
     border: 5px solid var(--border-color);
     border-radius: var(--border-radius);
+}
+
+.data-table-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-header h3 { margin: 0; font-size: 1.1rem; }
+
+.search-box {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.3rem 0.6rem;
+    display: flex;
+    align-items: center;
+}
+
+.search-box input {
+    border: none; background: transparent; outline: none;
+    color: var(--text-color);
+}
+
+.table-responsive { max-height: 60vh; overflow-y: auto; }
+
+.data-table { width: 100%; border-collapse: collapse; }
+
+.data-table th, .data-table td {
+    padding: 0.8rem 1.25rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table thead th {
+    background-color: var(--bg-color);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+.status-active {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-inactive {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-action {
+    background: none; border: 1px solid var(--border-color);
+    color: var(--text-secondary); padding: 0.4rem 0.8rem;
+    border-radius: 6px; text-decoration: none;
+    font-size: 0.9rem; transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+button, select {
+    font-family: 'Vazirmatn', sans-serif;
+}
+/* استایل برای دکمه‌های متنی (برای نام کاربر در جدول) */
+.text-btn {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0;
+    font-size: 0.95rem; /* اندازه فونت مشابه بقیه جدول */
+}
+.text-btn:hover {
+    text-decoration: underline;
+}
+
+/* استایل برای select در تم تاریک (رفع مشکل) */
+body.dark-theme select {
+    background-color: #374151; /* یک رنگ تیره‌تر برای پس‌زمینه */
+    border-color: #4b5563;
 }

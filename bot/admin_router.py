@@ -1,5 +1,6 @@
 import logging
 from telebot import types, telebot
+from .bot_instance import bot, admin_conversations # << تغییر اصلی
 from .admin_handlers import user_management, reporting, broadcast, backup, group_actions 
 from .admin_hiddify_handlers import _start_add_user_convo, _start_add_user_from_plan_convo, _handle_plan_selection, initialize_hiddify_handlers
 from .admin_marzban_handlers import _start_add_marzban_user_convo, initialize_marzban_handlers
@@ -8,12 +9,8 @@ from .menu import menu
 from .utils import _safe_edit
 
 logger = logging.getLogger(__name__)
-admin_conversations = {}
-bot = None
 
-def register_admin_handlers(b: telebot.TeleBot):
-    global bot
-    bot = b
+def register_admin_handlers():
     
     initialize_hiddify_handlers(bot, admin_conversations)
     initialize_marzban_handlers(bot, admin_conversations)

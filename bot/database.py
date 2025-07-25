@@ -495,4 +495,20 @@ class DatabaseManager:
         with self._conn() as c:
             row = c.execute("SELECT * FROM user_uuids WHERE uuid = ? AND is_active = 1", (uuid_str,)).fetchone()
             return dict(row) if row else None
+        
+    def get_all_user_uuids(self) -> List[Dict[str, Any]]:
+        """
+        تمام رکوردهای UUID را از دیتابیس برمی‌گرداند.
+        این تابع برای پنل ادمین جهت نمایش همه کاربران استفاده می‌شود.
+        """
+        with self._conn() as c:
+            # تمام اطلاعات مورد نیاز برای نمایش در لیست کاربران انتخاب می‌شود
+            query = """
+                SELECT id, user_id, uuid, name, is_active, created_at
+                FROM user_uuids
+                ORDER BY created_at DESC
+            """
+            rows = c.execute(query).fetchall()
+            return [dict(r) for r in rows]
+
 db = DatabaseManager()

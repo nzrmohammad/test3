@@ -5,11 +5,10 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
-            <li><a href="{{ url_for('admin.dashboard', key=request.args.get('key')) }}" class="active"><i class="ri-dashboard-3-line nav-icon"></i><span class="nav-text">داشبورد</span></a></li>
-            <li><a href="#"><i class="ri-group-line nav-icon"></i><span class="nav-text">مدیریت کاربران</span></a></li>
-            <li><a href="{{ url_for('admin.manage_servers_page', key=request.args.get('key')) }}" class="..."><i class="ri-server-line nav-icon"></i><span class="nav-text">مدیریت سرورها</span></a></li>
-
-            <li><a href="#"><i class="ri-settings-3-line nav-icon"></i><span class="nav-text">تنظیمات کلی</span></a></li>
+            <li><a href="{{ url_for('admin.dashboard', key=request.args.get('key')) }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}"><i class="ri-dashboard-3-line nav-icon"></i><span class="nav-text">داشبورد</span></a></li>
+            <li><a href="{{ url_for('admin.user_management_page', key=request.args.get('key')) }}" class="{% if request.endpoint == 'admin.user_management_page' %}active{% endif %}"><i class="ri-group-line nav-icon"></i><span class="nav-text">مدیریت کاربران</span></a></li>            <li><a href="{{ url_for('admin.comprehensive_report_page', key=request.args.get('key')) }}" class="{% if request.endpoint == 'admin.comprehensive_report_page' %}active{% endif %}"><i class="ri-group-line nav-icon"></i><span class="nav-text">گزارش گیری</span></a></li>
+            <li><a href="{{ url_for('admin.manage_templates_page', key=request.args.get('key')) }}" class="{% if request.endpoint == 'admin.manage_templates_page' %}active{% endif %}"><i class="ri-server-line nav-icon"></i><span class="nav-text">مدیریت سرورها</span></a></li>
+            <li><a href="# " class="{% if request.endpoint == 'admin.admin.dashboard' %}active{% endif %}"><i class="ri-settings-3-line nav-icon"></i><span class="nav-text">تنظیمات کلی</span></a></li>
         </ul>
     </nav>
     <div class="logout">

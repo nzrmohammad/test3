@@ -65,8 +65,8 @@ class HiddifyAPIHandler:
     def _norm(self, raw: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             if not isinstance(raw, dict): return None
             
-            usage_limit = safe_float(raw.get("usage_limit_GB", 0))
-            current_usage = safe_float(raw.get("current_usage_GB", 0))
+            usage_limit = round(safe_float(raw.get("usage_limit_GB", 0)), 3)
+            current_usage = round(safe_float(raw.get("current_usage_GB", 0)), 3)
             
             normalized_data = {
                 "name": raw.get("name") or "کاربر ناشناس",

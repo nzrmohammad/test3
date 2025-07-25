@@ -180,7 +180,7 @@ class MarzbanAPIHandler:
                     continue
 
                 data_limit = user.get('data_limit')
-                limit_gb = (data_limit / (1024**3)) if data_limit is not None else 0
+                limit_gb = round(data_limit / (1024**3), 3) if data_limit is not None else 0
                 
                 used_traffic = user.get('used_traffic', 0)
                 usage_gb = used_traffic / (1024 ** 3)
@@ -193,6 +193,7 @@ class MarzbanAPIHandler:
                     expire_days = (expire_datetime - datetime.now(self.utc_tz)).days
 
                 normalized_data = {
+                    "username": username,
                     "name": username,
                     "uuid": uuid,
                     "is_active": user.get('status') == 'active',
@@ -213,7 +214,7 @@ class MarzbanAPIHandler:
 
         uuid = self.username_to_uuid_map.get(username, None)
         usage_gb = user.get('used_traffic', 0) / (1024 ** 3)
-        limit_gb = user.get('data_limit', 0) / (1024 ** 3)
+        limit_gb = round(user.get('data_limit', 0) / (1024 ** 3), 3)
         expire_timestamp = user.get('expire')
         expire_days = None
         if expire_timestamp and expire_timestamp > 0:
@@ -221,7 +222,7 @@ class MarzbanAPIHandler:
             expire_days = (expire_datetime - datetime.now(self.utc_tz)).days
 
         normalized_data = {
-            "name": username, "uuid": uuid, "is_active": user.get('status') == 'active',
+            "username": username, "name": username, "uuid": uuid, "is_active": user.get('status') == 'active',
             "last_online": self._parse_marzban_datetime(user.get('online_at')),
             "usage_limit_GB": limit_gb, "current_usage_GB": usage_gb,
             "remaining_GB": max(0, limit_gb - usage_gb),

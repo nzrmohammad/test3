@@ -3,99 +3,110 @@
 {% block title %}داشبورد ادمین{% endblock %}
 {% block page_title %}داشبورد ادمین{% endblock %}
 
+{% block extra_css %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr; /* دو ستون با عرض نابرابر */
+        gap: 1.5rem;
+        align-items: flex-start;
+    }
+    .main-column { display: flex; flex-direction: column; gap: 1.5rem; }
+    .sidebar-column { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    @media (max-width: 1024px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
 {% block page_content %}
     {% include 'partials/_header.html' %}
 
-    <section class="info-grid">
+    <section class="info-grid" style="margin-bottom: 1.5rem;">
         <div class="info-card"><div class="card-header"><i class="ri-group-line icon"></i><span>کل کاربران</span></div><div class="card-content">{{ stats.total_users | default('...') }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-user-follow-line icon"></i><span>کاربران فعال</span></div><div class="card-content">{{ stats.active_users | default('...') }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-alarm-warning-line icon"></i><span>در آستانه انقضا</span></div><div class="card-content">{{ stats.expiring_soon_count | default('...') }}</div></div>
         <div class="info-card"><div class="card-header"><i class="ri-wifi-line icon"></i><span>کاربران آنلاین</span></div><div class="card-content">{{ stats.online_users | default('...') }}</div></div>
         <div class="info-card"><div class="card-header"><i class="ri-download-cloud-2-line icon"></i><span>مصرف امروز</span></div><div class="card-content">{{ stats.total_usage_today | default('...') }}</div></div>
-        <div class="info-card"><div class="card-header"><i class="ri-user-add-line icon"></i><span>کاربران جدید</span></div><div class="card-content">{{ stats.new_users_today | default('...') }}</div></div>
+        <div class="info-card"><div class="card-header"><i class="ri-user-add-line icon"></i><span>کاربران جدید (۲۴س)</span></div><div class="card-content">{{ stats.new_users_today | default('...') }}</div></div>
     </section>
     
-    <!-- جدول مدیریت کاربران -->
-    <section class="info-card data-table-container">
-        <div class="table-header">
-            <h3>لیست کاربران</h3>
-            <div class="search-box">
-                <i class="ri-search-line"></i>
-                <input type="text" id="user-search-input" placeholder="جستجو بر اساس نام یا UUID...">
+    <div class="dashboard-grid">
+        <div class="main-column">
+            <div class="info-card">
+                <div class="card-header" style="margin-bottom: 1.5rem;"><i class="ri-bar-chart-line icon"></i><span>نمودار مصرف ۷ روز گذشته (GB)</span></div>
+                <div id="usage-chart"></div>
+            </div>
+
+            <!-- <div class="data-table-container">
+                <div class="table-header"><h3>لیست کل کاربران</h3><div class="search-box"><i class="ri-search-line"></i><input type="text" id="user-search-input" placeholder="جستجو..."></div></div>
+                <div class="table-responsive" style="max-height: 400px;"><table class="data-table"><thead><tr><th>نام</th><th>وضعیت</th><th>مصرف/کل(GB)</th><th>اعتبار(روز)</th><th>عملیات</th></tr></thead><tbody id="users-table-body"></tbody></table></div>
+            </div> -->
+        </div>
+
+        <div class="sidebar-column">
+            <div class="info-card">
+                <div class="card-header"><i class="ri-user-add-line icon"></i><span>کاربران جدید</span></div>
+                <ul class="user-list">{% for user in recent_users %}<li class="user-list-item"><span>{{user.name}}</span><span class="date">{{ user.created_at.strftime('%Y/%m/%d') if user.created_at }}</span></li>{% else %}<li>کاربر جدیدی یافت نشد.</li>{% endfor %}</ul>
+            </div>
+
+            <div class="info-card">
+                <div class="card-header"><i class="ri-time-line icon"></i><span>در آستانه انقضا</span></div>
+                <ul class="user-list">{% for user in expiring_soon_users %}<li class="user-list-item"><span>{{user.name}}</span><span class="days">{{user.expire}} روز</span></li>{% else %}<li>کاربری یافت نشد.</li>{% endfor %}</ul>
             </div>
         </div>
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead>
-                    <tr><th>نام کاربر</th><th>وضعیت</th><th>مصرف / کل (GB)</th><th>اعتبار (روز)</th><th>آخرین اتصال</th><th>عملیات</th></tr>
-                </thead>
-                <tbody id="users-table-body">
-                    <tr><td colspan="6" class="text-center">درحال بارگذاری اطلاعات...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tableBody = document.getElementById('users-table-body');
-    const searchInput = document.getElementById('user-search-input');
-    let allUsersData = []; // ذخیره داده‌ها برای جستجوی سریع
+// --- اسکریپت جدول کاربران (مشابه قبل، فقط فیلدها خلاصه‌تر شده) ---
+const tableBody = document.getElementById('users-table-body');
+const searchInput = document.getElementById('user-search-input');
+const adminKey = new URLSearchParams(window.location.search).get('key');
+let allUsersData = [];
+function renderTable(users) { /* ... کد این تابع مشابه قبل است ... */ }
+function loadUsers() { /* ... کد fetch مشابه قبل است ... */ }
+// loadUsers(); // فراخوانی اولیه
 
-    // تابع برای نمایش کاربران در جدول
-    function renderTable(users) {
-        tableBody.innerHTML = '';
-        if (users.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">هیچ کاربری یافت نشد.</td></tr>';
-            return;
-        }
-        users.forEach(user => {
-            const usage = `${(user.current_usage_GB || 0).toFixed(1)} / ${(user.usage_limit_GB || 0).toFixed(1)}`;
-            const statusClass = user.is_active ? 'status-active' : 'status-inactive';
-            const lastOnline = user.breakdown?.hiddify?.last_online_shamsi || user.breakdown?.marzban?.last_online_shamsi || 'هرگز';
-            
-            // دکمه مشاهده که به صفحه کاربر لینک می‌دهد
-            const viewButton = `<a href="/user/${user.uuid}" class="btn-action">مشاهده</a>`;
-            
-            const row = `
-                <tr>
-                    <td>${user.name || 'ناشناس'}</td>
-                    <td><span class="status-badge ${statusClass}">${user.is_active ? 'فعال' : 'غیرفعال'}</span></td>
-                    <td>${usage}</td>
-                    <td>${user.expire === null ? 'نامحدود' : user.expire}</td>
-                    <td>${lastOnline}</td>
-                    <td>${viewButton}</td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-        });
-    }
+// --- اسکریپت جدید برای نمودار ---
+const chartOptions = {
+    series: [{ name: "مصرف (GB)", data: {{ usage_chart_data.data | tojson }} }],
+    chart: { type: 'area', height: 300, toolbar: { show: false }, fontFamily: 'Vazirmatn, sans-serif' },
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth' },
+    xaxis: { categories: {{ usage_chart_data.labels | tojson }} },
+    tooltip: { theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light' }
+};
+const chart = new ApexCharts(document.querySelector("#usage-chart"), chartOptions);
+chart.render();
 
-    // دریافت داده‌ها از API با کلید امنیتی
-    const adminKey = new URLSearchParams(window.location.search).get('key');
-    fetch(`/api/admin/users?key=${adminKey}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center">${data.error}</td></tr>`;
-                return;
-            }
-            allUsersData = data;
-            renderTable(allUsersData);
-        }).catch(error => {
-            console.error('Error fetching users:', error);
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">خطا در بارگذاری اطلاعات از سرور.</td></tr>';
-        });
-
-    // منطق جستجوی زنده
-    searchInput.addEventListener('keyup', () => {
-        const query = searchInput.value.toLowerCase().trim();
-        const filteredUsers = allUsersData.filter(user => 
-            (user.name && user.name.toLowerCase().includes(query)) ||
-            (user.uuid && user.uuid.toLowerCase().includes(query))
-        );
-        renderTable(filteredUsers);
+// کدهای کامل جاوا اسکریپت برای جدول
+function renderTable(users) {
+    tableBody.innerHTML = '';
+    if (users.length === 0) { tableBody.innerHTML = '<tr><td colspan="5" class="text-center">هیچ کاربری یافت نشد.</td></tr>'; return; }
+    users.forEach(user => {
+        const usage = `${(user.current_usage_GB || 0).toFixed(1)} / ${(user.usage_limit_GB || 0).toFixed(1)}`;
+        const statusClass = user.is_active ? 'status-active' : 'status-inactive';
+        const viewButton = `<a href="/user/${user.uuid}" class="btn-action">مشاهده</a>`;
+        const row = `<tr><td>${user.name || 'ناشناس'}</td><td><span class="status-badge ${statusClass}">${user.is_active ? 'فعال' : 'غیرفعال'}</span></td><td>${usage}</td><td>${user.expire === null ? 'نامحدود' : user.expire}</td><td>${viewButton}</td></tr>`;
+        tableBody.innerHTML += row;
     });
+}
+function loadUsers() {
+    fetch(`/admin/api/users?key=${adminKey}`)
+    .then(response => response.json())
+    .then(data => {
+        allUsersData = data;
+        renderTable(allUsersData);
+    }).catch(error => { console.error('Error:', error); tableBody.innerHTML = '<tr><td colspan="5" class="text-center">خطا در بارگذاری.</td></tr>'; });
+}
+loadUsers();
+searchInput.addEventListener('keyup', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    const filteredUsers = allUsersData.filter(user => (user.name && user.name.toLowerCase().includes(query)) || (user.uuid && user.uuid.toLowerCase().includes(query)));
+    renderTable(filteredUsers);
 });
 </script>
 {% endblock %}

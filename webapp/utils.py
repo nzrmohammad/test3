@@ -14,6 +14,26 @@ PERSIAN_MONTHS = {
     "Dey": "دی", "Bahman": "بهمن", "Esfand": "اسفند"
 }
 
+def format_relative_time(dt: datetime | None) -> str | None:
+    """یک شیء datetime را به زمان نسبی خوانا تبدیل می‌کند (مثلا: ۵ دقیقه پیش)."""
+    if not dt or not isinstance(dt, datetime):
+        return None
+    now = datetime.now(pytz.utc) # <<<< اینجا pyz به pytz تغییر کرد
+    dt_utc = dt.astimezone(pytz.utc) # <<<< اینجا pyz به pytz تغییر کرد
+    delta = now - dt_utc
+
+    seconds = delta.total_seconds()
+    if seconds < 60:
+        return "همین الان"
+    minutes = int(seconds / 60)
+    if minutes < 60:
+        return f"{minutes} دقیقه پیش"
+    hours = int(minutes / 60)
+    if hours < 24:
+        return f"{hours} ساعت پیش"
+    days = int(hours / 24)
+    return f"{days} روز پیش"
+
 def format_shamsi_tehran(dt: datetime | None) -> str | None:
     """یک شیء datetime را به تاریخ و زمان شمسی تهران تبدیل می‌کند."""
     if not dt or not isinstance(dt, datetime):
@@ -45,11 +65,15 @@ def format_shamsi_from_gregorian_days(days_left: int | None) -> str:
     """تعداد روزهای باقی‌مانده را به تاریخ شمسی کامل و خوانا تبدیل می‌کند."""
     if days_left is None:
         return "نامحدود"
+    if days_left < 0:
+        return "منقضی شده"
     try:
         expire_date_gregorian = datetime.now() + timedelta(days=days_left)
         expire_date_shamsi = jdatetime.date.fromgregorian(date=expire_date_gregorian)
-        # فرمت انگلیسی تاریخ را می‌گیریم
+        
+        # فرمت انگلیسی تاریخ را می‌گیریم (e.g., "25 May 2025")
         formatted_date_en = expire_date_shamsi.strftime("%d %B %Y")
+        
         # ماه انگلیسی را با معادل فارسی آن جایگزین می‌کنیم
         for en, fa in PERSIAN_MONTHS.items():
             if en in formatted_date_en:

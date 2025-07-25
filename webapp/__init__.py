@@ -1,19 +1,14 @@
 from flask import Flask
-import sys
-import os
-from webapp.user_routes import user_bp
-from webapp.admin_routes import admin_bp
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def create_app():
-    app = Flask(__name__)
 
-    app.secret_key = os.urandom(24)
+    app = Flask(__name__, instance_relative_config=True)
     
-    with app.app_context():
+    from .user_routes import user_bp
+    from .admin_routes import admin_bp
 
-        app.register_blueprint(user_bp)
-        app.register_blueprint(admin_bp)
-        
+    app.register_blueprint(user_bp)
+    app.register_blueprint(admin_bp)
+
+    print("Flask app created and blueprints registered successfully.")
     return app
