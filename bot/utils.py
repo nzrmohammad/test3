@@ -8,7 +8,6 @@ import pytz
 import jdatetime
 from .config import PROGRESS_COLORS
 from .database import db
-from .combined_handler import get_combined_user_info
 
 
 logger = logging.getLogger(__name__)
@@ -166,6 +165,7 @@ def days_until_next_birthday(birthday: Optional[date]) -> Optional[int]:
     return (next_birthday - today).days
 
 def get_processed_user_data(uuid: str) -> Optional[dict]:
+    from .combined_handler import get_combined_user_info
     info = get_combined_user_info(uuid)
     if not info:
         return None

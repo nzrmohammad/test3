@@ -27,10 +27,8 @@ class MarzbanAPIHandler:
         return session
 
     def reload_uuid_maps(self) -> bool:
-        # current_dir = os.path.dirname(os.path.abspath(__file__))
-        # uuid_map_path = os.path.join(current_dir, 'uuid_to_marzban_user.json')
-        uuid_map_path = '/opt/custom_bot/bot/uuid_to_marzban_user.json' # <--- این خط را جایگزین کنید
-
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        uuid_map_path = os.path.join(current_dir, 'uuid_to_marzban_user.json')
         try:
             with open(uuid_map_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -132,11 +130,8 @@ class MarzbanAPIHandler:
             if not payload:
                 return True
 
-            # برای درخواست PUT نیز از self._request استفاده می‌کنیم تا کد یکپارچه باشد
-            # (گرچه کد قبلی شما برای این بخش هم کار می‌کرد، اما این روش تمیزتر است)
             response = self._request("PUT", f"/user/{username}", json=payload)
             
-            # self._request در صورت موفقیت True برمی‌گرداند یا JSON، پس باید بررسی کنیم None نباشد
             return response is not None
 
         except Exception as e:

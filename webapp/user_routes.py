@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, abort, request, Response, url_for, jsonify
-from webapp.services import get_processed_user_data, generate_user_subscription_configs
 from bot.utils import load_json_file, generate_user_subscription_configs, get_processed_user_data
 from bot.config import ADMIN_SUPPORT_CONTACT
 from bot.database import db
