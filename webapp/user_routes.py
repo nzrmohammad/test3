@@ -10,8 +10,6 @@ import logging
 logger = logging.getLogger(__name__)
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
-# این بخش به صورت خودکار UUID را به تمام تمپلیت‌ها اضافه می‌کند
-# و مشکل لینک‌های خالی را برای همیشه حل می‌کند.
 @user_bp.context_processor
 def inject_uuid_for_user_pages():
     uuid = request.view_args.get('uuid')
@@ -19,7 +17,6 @@ def inject_uuid_for_user_pages():
         return dict(uuid=uuid)
     return {}
 
-# ✅ اصلاح شده: <string:uuid> به تمام آدرس‌ها اضافه شد
 @user_bp.route('/<string:uuid>')
 def user_dashboard(uuid):
     user_data = user_service.get_processed_user_data(uuid)
