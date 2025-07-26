@@ -566,4 +566,55 @@ class DatabaseManager:
                 }
         return usage_map
 
+    def get_daily_usage_summary(self, days: int = 7) -> List[Dict[str, Any]]:
+            """
+            مصرف کل روزانه (مجموع Hiddify و Marzban) را برای تعداد روز مشخص شده محاسبه می‌کند.
+            این تابع برای استفاده در نمودار مصرف داشبورد ادمین طراحی شده است.
+            خروجی: لیستی از دیکشنری‌ها، هر کدام شامل 'date' و 'total_gb'.
+            """
+            logger.info(f"Calculating daily usage summary for the last {days} days.")
+            tehran_tz = pytz.timezone("Asia/Tehran")
+            summary = []
+
+            # کوئری اصلی که مصرف روزانه را برای هر کاربر در یک بازه زمانی محاسبه می‌کند
+            # و سپس مجموع کل مصرف روزانه را برمی‌گرداند.
+            query = """
+                SELECT
+                    SUM(COALESCE(h_diff, 0)) as total_h,
+                    SUM(COALESCE(m_diff, 0)) as total_m
+                FROM (
+                    SELECT
+                        MAX(hiddify_usage_gb) - MIN(hiddify_usage_gb) as h_diff,
+                        MAX(marzban_usage_gb) - MIN(marzban_usage_gb) as m_diff
+                    FROM usage_snapshots
+                    WHERE taken_at >= ? AND taken_at < ?
+                    GROUP BY uuid_id
+                )
+            """
+
+            with self._conn() as c:
+                for i in range(days):
+                    # محاسبه تاریخ شروع و پایان هر روز به وقت تهران و تبدیل به UTC
+                    target_date = datetime.now(tehran_tz) - timedelta(days=i)
+                    day_start_tehran = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
+                    day_end_tehran = day_start_tehran + timedelta(days=1)
+                    
+                    day_start_utc = day_start_tehran.astimezone(pytz.utc)
+                    day_end_utc = day_end_tehran.astimezone(pytz.utc)
+
+                    # اجرای کوئری برای روز مشخص شده
+                    row = c.execute(query, (day_start_utc, day_end_utc)).fetchone()
+                    
+                    total_gb = 0
+                    if row and (row['total_h'] is not None or row['total_m'] is not None):
+                        total_gb = (row['total_h'] or 0) + (row['total_m'] or 0)
+
+                    summary.append({
+                        'date': day_start_tehran.strftime('%Y-%m-%d'),
+                        'total_gb': round(total_gb, 2)
+                    })
+
+            # مرتب‌سازی نتیجه بر اساس تاریخ به صورت صعودی
+            return sorted(summary, key=lambda x: x['date'])
+
 db = DatabaseManager()

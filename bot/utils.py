@@ -22,20 +22,70 @@ def initialize_utils(b_instance):
 
 PERSIAN_MONTHS = { "Farvardin": "فروردین", "Ordibehesht": "اردیبهشت", "Khordad": "خرداد", "Tir": "تیر", "Mordad": "مرداد", "Shahrivar": "شهریور", "Mehr": "مهر", "Aban": "آبان", "Azar": "آذر", "Dey": "دی", "Bahman": "بهمن", "Esfand": "اسفند" }
 
-def to_shamsi(dt: Optional[datetime], include_time: bool = False) -> str:
-    """تابع جامع برای تبدیل تاریخ میلادی به شمسی."""
-    if not dt or not isinstance(dt, datetime): return "نامشخص"
+def to_shamsi(dt: Optional[Union[datetime, date, str]], include_time: bool = False) -> str:
+    """تابع جامع برای تبدیل تاریخ میلادی (datetime, date یا str) به شمسی."""
+    if not dt:
+        return "نامشخص"
+    import jdatetime
+    from datetime import datetime, date
+    import re
     try:
+        # اگر تاریخ شمسی هست
+        if isinstance(dt, jdatetime.datetime):
+            if include_time:
+                return dt.strftime("%Y/%m/%d %H:%M")
+            formatted_date_en = dt.strftime("%d %B %Y")
+            for en, fa in PERSIAN_MONTHS.items():
+                if en in formatted_date_en:
+                    return formatted_date_en.replace(en, fa)
+            return dt.strftime("%Y/%m/%d")
+        # اگر datetime هست
+        if isinstance(dt, datetime):
+            pass
+        # اگر date هست (مثلاً از days_until_next_birthday)
+        elif isinstance(dt, date):
+            dt = datetime(dt.year, dt.month, dt.day)
+        # اگر رشته هست
+        elif isinstance(dt, str):
+            s = dt.strip()
+            # اول حالات Iso:
+            try:
+                if re.match(r'^\d{4}-\d{2}-\d{2}T\d', s):  # isoformat با T
+                    dt = datetime.fromisoformat(s)
+                elif re.match(r'^\d{4}-\d{2}-\d{2} \d', s):  # معمولی با فاصله
+                    dt = datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+                elif re.match(r'^\d{4}/\d{2}/\d{2}$', s):  # اسلش به جای دش
+                    dt = datetime.strptime(s, '%Y/%m/%d')
+                elif re.match(r'^\d{4}-\d{2}-\d{2}$', s):  # yyyy-mm-dd
+                    dt = datetime.strptime(s, '%Y-%m-%d')
+                else:
+                    return "نامشخص"
+            except Exception as e:
+                logger.error(f"Cannot parse date string: {s}, error: {e}")
+                return "نامشخص"
+        else:
+            return "نامشخص"
+
+        # الان dt حتما datetime هست
+        import pytz
         tehran_tz = pytz.timezone("Asia/Tehran")
-        dt_tehran = dt.astimezone(tehran_tz)
+        if dt.tzinfo is None:
+            dt_tehran = tehran_tz.localize(dt)
+        else:
+            dt_tehran = dt.astimezone(tehran_tz)
         dt_shamsi = jdatetime.datetime.fromgregorian(datetime=dt_tehran)
-        if include_time: return dt_shamsi.strftime("%Y/%m/%d %H:%M")
+        if include_time:
+            return dt_shamsi.strftime("%Y/%m/%d %H:%M")
         formatted_date_en = dt_shamsi.strftime("%d %B %Y")
         for en, fa in PERSIAN_MONTHS.items():
-            if en in formatted_date_en: return formatted_date_en.replace(en, fa)
+            if en in formatted_date_en:
+                return formatted_date_en.replace(en, fa)
         return dt_shamsi.strftime("%Y/%m/%d")
     except Exception as e:
-        logger.error(f"Error in to_shamsi conversion: {e}"); return "خطا"
+        logger.error(f"Error in to_shamsi conversion: value={dt}, error={e}")
+        return "خطا"
+
+
 
 def format_relative_time(dt: Optional[datetime]) -> str:
     """یک شیء datetime را به زمان نسبی خوانا تبدیل می‌کند."""

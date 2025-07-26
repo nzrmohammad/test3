@@ -4,112 +4,34 @@
 
 {% block extra_css %}
 <style>
-    .birthday-card {
-        background: linear-gradient(135deg, #fceabb, #f8b500);
-        color: #3d2f00;
-    }
-    .birthday-card .icon {
-        color: #c69100;
-    }
-    .uuid-card, .expire-date-card {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 15px 20px;
-    }
-    .uuid-card {
-        justify-content: space-between;
-    }
-    .uuid-content {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    .uuid-content .icon {
-        font-size: 1.5rem;
-        color: var(--text-secondary);
-    }
-    .uuid-label {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        transition: all 0.2s ease-in-out;
-    }
-    .uuid-masked {
-        font-family: monospace;
-        font-size: 1rem;
-        letter-spacing: 1px;
-    }
-    .copy-btn {
-        background: none;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 8px 10px;
-        cursor: pointer;
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-        transition: all 0.2s ease;
-    }
-    .copy-btn:hover {
-        background-color: var(--accent-color);
-        color: white;
-    }
-    .uuid-card .action-buttons {
-        display: flex;
-        gap: 10px;
-    }
-    .expire-date-card .icon {
-        font-size: 2rem;
-        color: #34d399;
-    }
-    .expire-label {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-    }
-    .expire-date {
-        font-size: 1rem;
-        font-weight: bold;
-    }
-    .total-traffic-card {
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        gap: 20px;
-        padding: 15px;
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        margin-top: 25px;
-    }
-    .traffic-chart-container {
-        flex-shrink: 0;
-    }
-    .traffic-details {
-        flex-grow: 1;
-    }
-    .traffic-details .detail-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 0;
-        font-size: 0.95rem;
-        border-bottom: 1px dashed var(--border-color);
-    }
-    .traffic-details .detail-item:last-child {
-        border-bottom: none;
-    }
-    .status-badge {
-        padding: 0.3rem 0.8rem;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        font-weight: normal;
-    }
-    .status-active {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-    .status-inactive {
-        background-color: #fee2e2;
-        color: #991b1b;
-    }
+    .status-badge { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.85rem; font-weight: 500; display: inline-block; }
+    .status-active { background-color: #dcfce7; color: #166534; }
+    .status-inactive { background-color: #fee2e2; color: #991b1b; }
+    .status-warning { background-color: #fef3c7; color: #92400e; }
+    .progress-bar-wrapper { background: var(--border-color, #e5e7eb); border-radius: 8px; height: 8px; overflow: hidden; margin-top: 8px; }
+    .progress-bar { height: 100%; transition: width 0.3s ease; border-radius: 8px; }
+    .progress-success { background-color: #10b981; }
+    .progress-warning { background-color: #f59e0b; }
+    .progress-danger { background-color: #ef4444; }
+    .chart-container { position: relative; height: 280px; padding: 10px; }
+    .chart-container canvas { width: 100% !important; height: 100% !important; }
+    .btn-renew { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 8px 16px; border-radius: 8px; font-weight: 500; transition: all 0.2s; text-decoration: none; }
+    .btn-renew:hover { background: #1d4ed8; }
+    .user-card { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 15px; }
+    .user-info { font-size: 1.1rem; font-weight: 600; }
+    .alert-mini { padding: 10px 12px; border-radius: 8px; margin: 10px 0; border-left: 3px solid; font-size: 0.9rem; }
+    .alert-warning { background-color: #fef3c7; border-color: #f59e0b; color: #92400e; }
+    .alert-danger { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+    body.dark-theme .alert-warning { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    body.dark-theme .alert-danger { background-color: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .birthday-card { background: linear-gradient(135deg, #fceabb, #f8b500); color: #3d2f00; box-shadow: 0 4px 15px rgba(248, 181, 0, 0.2); }
+    .birthday-card .icon { color: #c69100; }
+    .connection-status { display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+    .status-dot.online { background: #10b981; }
+    .status-dot.offline { background: #ef4444; }
+    .status-dot.recent { background: #f59e0b; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 </style>
 {% endblock %}
 
@@ -117,88 +39,103 @@
     {% set page_title = 'داشبورد کاربری' %}
     {% include 'partials/_header.html' %}
     
+    <div class="user-card">
+        <div class="user-info"><i class="ri-user-line"></i> {{ user.username }}</div>
+        <a href="{{ url_for('user.buy_service_page', uuid=uuid) }}" class="btn-renew"><i class="ri-shopping-cart-line"></i> تمدید سرویس</a>
+    </div>
+    
     <section class="info-grid">
         <div class="info-card">
-            <div class="card-header"><i class="ri-shield-check-line icon"></i><span>وضعیت سرویس</span></div>
-            <div class="card-content">
-                <span class="status-badge {{ 'status-active' if user.is_active else 'status-inactive' }}">
-                    {{ 'فعال' if user.is_active else 'غیرفعال' }}
-                </span>
-            </div>
+            <div class="card-header"><i class="ri-shield-check-line icon"></i><span>وضعیت کلی</span></div>
+            <div class="card-content"><span class="status-badge {{ user.general_status.class }}">{{ user.general_status.text }}</span></div>
         </div>
         <div class="info-card">
             <div class="card-header"><i class="ri-calendar-event-line icon"></i><span>تاریخ انقضا</span></div>
-            <div class="card-content">
-                <span>{{ user.expire_shamsi }}</span>
-                <small>({{ user.expire }} روز باقیمانده)</small>
-            </div>
+            <div class="card-content"><span>{{ user.expire_shamsi }}</span>{% if user.expire != "" and user.expire > 0 %}<small>({{ user.expire }} روز مانده)</small>{% endif %}</div>
         </div>
         <div class="info-card">
-            <div class="card-header"><i class="ri-database-2-line icon"></i><span>حجم کل</span></div>
-            <div class="card-content">
-                <span>{{ "%.1f" | format(user.current_usage_GB) }} / {{ "%.1f" | format(user.usage_limit_GB) }} <small>GB</small></span>
-            </div>
+            <div class="card-header"><i class="ri-line-chart-line icon"></i><span>میانگین مصرف</span></div>
+            <div class="card-content"><span>{{ "%.2f" | format(user.avg_daily_usage_GB) }} <small>GB / روز</small></span></div>
         </div>
-        <div class="info-card">
-            <div class="card-header"><i class="ri-cake-2-line icon"></i><span>شمارنده تولد</span></div>
-            <div class="card-content">
-                {% if user.days_until_birthday is not none %}
-                    <span>{{ user.days_until_birthday }}</span>
-                    <small>روز تا تولد شما</small>
-                {% else %}
-                    <span>-</span>
-                    <small>تاریخ ثبت نشده</small>
-                {% endif %}
-            </div>
+        <div class="info-card {% if user.birthday_message %}birthday-card{% endif %}">
+            <div class="card-header"><i class="ri-cake-2-line icon"></i><span>تولد</span></div>
+            <div class="card-content">{% if user.has_birthday %}{% if user.birthday_message %}<div>{{ user.birthday_message }}</div>{% else %}<span>{{ user.days_until_birthday }}<small> روز مانده</small></span>{% endif %}{% else %}<span>-</span><small>ثبت نشده</small>{% endif %}</div>
         </div>
     </section>
+
+    <div class="info-card" style="margin-top: 15px;">
+        <div class="card-header"><i class="ri-database-2-line icon"></i><span>حجم کل</span></div>
+        <div class="card-content">
+            <span>{{ "%.2f" | format(user.current_usage_GB) }} / {{ "%.2f" | format(user.usage_limit_GB) }} <small>GB</small></span>
+            <div class="progress-bar-wrapper"><div class="progress-bar {% if user.usage_percentage >= 90 %}progress-danger{% elif user.usage_percentage >= 75 %}progress-warning{% else %}progress-success{% endif %}" style="width: {{ user.usage_percentage }}%"></div></div>
+            <small style="color: var(--text-secondary);">{{ user.usage_percentage }}% مصرف شده</small>
+        </div>
+    </div>
 
     <h3 class="section-title">جزئیات سرورها</h3>
     <section class="details-grid">
         {% if user.breakdown and user.breakdown.hiddify %}
         <div class="info-card panel-card">
-            <div class="panel-header">
-                <span class="fi fi-de"></span>
-                <h4>سرور آلمان</h4>
-            </div>
+            <div class="panel-header"><span class="fi fi-de"></span><h4>سرور آلمان (Hiddify)</h4></div>
             <ul class="server-stats">
-                <li>
-                    <div class="stat-label"><i class="ri-database-2-line"></i><span>حجم</span></div>
-                    <span class="stat-value">{{ "%.1f" | format(user.breakdown.hiddify.current_usage_GB) }} / {{ "%.1f" | format(user.breakdown.hiddify.usage_limit_GB) }} GB</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-history-line"></i><span>مصرف روزانه</span></div>
-                    <span class="stat-value">{{ user.breakdown.hiddify.daily_usage_formatted }}</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div>
-                    <span class="stat-value">{{ user.breakdown.hiddify.last_online_shamsi | default('نامشخص', true) }}</span>
-                </li>
+                <li><div class="stat-label"><i class="ri-toggle-line"></i><span>وضعیت اتصال</span></div><span class="stat-value connection-status"><span class="status-dot {{ 'online' if user.breakdown.hiddify.online_status == 'آنلاین' else 'recent' if user.breakdown.hiddify.online_status == 'اخیراً آنلاین' else 'offline' }}"></span>{{ user.breakdown.hiddify.online_status }}</span></li>
+                <li><div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div><span class="stat-value">{{ user.breakdown.hiddify.last_online_shamsi }}</span></li>
+                <li><div class="stat-label"><i class="ri-flashlight-line"></i><span>مصرف امروز</span></div><span class="stat-value">{{ "%.2f" | format(user.breakdown.hiddify.today_usage_GB) }} GB</span></li>
+                <li><div class="stat-label"><i class="ri-calendar-check-line"></i><span>انقضای پنل</span></div><span class="stat-value">{{ user.breakdown.hiddify.expire_shamsi }}</span></li>
+                <li><div class="stat-label"><i class="ri-database-2-line"></i><span>حجم پنل</span></div><span class="stat-value">{{ "%.2f" | format(user.breakdown.hiddify.current_usage_GB) }} / {{ "%.2f" | format(user.breakdown.hiddify.usage_limit_GB) }} GB</span></li>
+                <li><div class="progress-bar-wrapper"><div class="progress-bar {% if user.breakdown.hiddify.usage_percentage >= 90 %}progress-danger{% elif user.breakdown.hiddify.usage_percentage >= 75 %}progress-warning{% else %}progress-success{% endif %}" style="width: {{ user.breakdown.hiddify.usage_percentage }}%"></div></div></li>
             </ul>
         </div>
         {% endif %}
-
         {% if user.breakdown and user.breakdown.marzban %}
         <div class="info-card panel-card">
-            <div class="panel-header">
-                <span class="fi fi-fr"></span>
-                <h4>سرور فرانسه</h4>
-            </div>
+            <div class="panel-header"><span class="fi fi-fr"></span><h4>سرور فرانسه (Marzban)</h4></div>
             <ul class="server-stats">
-                 <li>
-                    <div class="stat-label"><i class="ri-database-2-line"></i><span>حجم</span></div>
-                    <span class="stat-value">{{ "%.1f" | format(user.breakdown.marzban.current_usage_GB) }} / {{ "%.1f" | format(user.breakdown.marzban.usage_limit_GB) }} GB</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-history-line"></i><span>مصرف روزانه</span></div>
-                    <span class="stat-value">{{ user.breakdown.marzban.daily_usage_formatted }}</span>
-                </li>
-                <li>
-                    <div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div>
-                    <span class="stat-value">{{ user.breakdown.marzban.last_online_shamsi | default('نامشخص', true) }}</span>
-                </li>
+                 <li><div class="stat-label"><i class="ri-toggle-line"></i><span>وضعیت اتصال</span></div><span class="stat-value connection-status"><span class="status-dot {{ 'online' if user.breakdown.marzban.online_status == 'آنلاین' else 'recent' if user.breakdown.marzban.online_status == 'اخیراً آنلاین' else 'offline' }}"></span>{{ user.breakdown.marzban.online_status }}</span></li>
+                 <li><div class="stat-label"><i class="ri-time-line"></i><span>آخرین اتصال</span></div><span class="stat-value">{{ user.breakdown.marzban.last_online_shamsi }}</span></li>
+                 <li><div class="stat-label"><i class="ri-flashlight-line"></i><span>مصرف امروز</span></div><span class="stat-value">{{ "%.2f" | format(user.breakdown.marzban.today_usage_GB) }} GB</span></li>
+                 <li><div class="stat-label"><i class="ri-calendar-check-line"></i><span>انقضای پنل</span></div><span class="stat-value">{{ user.breakdown.marzban.expire_shamsi }}</span></li>
+                 <li><div class="stat-label"><i class="ri-database-2-line"></i><span>حجم پنل</span></div><span class="stat-value">{{ "%.2f" | format(user.breakdown.marzban.current_usage_GB) }} / {{ "%.2f" | format(user.breakdown.marzban.usage_limit_GB) }} GB</span></li>
+                 <li><div class="progress-bar-wrapper"><div class="progress-bar {% if user.breakdown.marzban.usage_percentage >= 90 %}progress-danger{% elif user.breakdown.marzban.usage_percentage >= 75 %}progress-warning{% else %}progress-success{% endif %}" style="width: {{ user.breakdown.marzban.usage_percentage }}%"></div></div></li>
             </ul>
         </div>
         {% endif %}
     </section>
+
+    <div class="info-card chart-container" style="margin-top: 20px;">
+        <div class="card-header"><i class="ri-bar-chart-grouped-line icon"></i><span>نمودار مصرف هفتگی</span></div>
+        <canvas id="weeklyChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('weeklyChart');
+        if (ctx) {
+            const isDarkTheme = document.body.classList.contains('dark-theme');
+            const chartColors = { textColor: isDarkTheme ? '#f9fafb' : '#111827', gridColor: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' };
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: {{ user.usage_chart_data.labels|tojson }},
+                    datasets: [{
+                        label: '🇩🇪', data: {{ user.usage_chart_data.hiddify_data|tojson }},
+                        borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.3, pointRadius: 2, borderWidth: 1.5
+                    }, {
+                        label: '🇫🇷', data: {{ user.usage_chart_data.marzban_data|tojson }},
+                        borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.3, pointRadius: 2, borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 6, font: { size: 12 }, color: chartColors.textColor } } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { font: { size: 10 }, color: chartColors.textColor }, grid: { color: chartColors.gridColor } },
+                        x: { ticks: { font: { size: 10 }, color: chartColors.textColor }, grid: { color: chartColors.gridColor } }
+                    }
+                }
+            });
+        }
+    });
+    </script>
 {% endblock %}
