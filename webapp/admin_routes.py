@@ -13,6 +13,7 @@ from .services import (
     add_templates_from_text,
     update_user_in_panels,
     toggle_template,
+    update_template,
     delete_template
 )
 
@@ -124,6 +125,23 @@ def toggle_template_api(template_id):
     except Exception as e:
         logger.error(f"API Failed to toggle template {template_id}: {e}", exc_info=True)
         return jsonify({'success': False, 'message': 'خطا در تغییر وضعیت.'}), 500
+
+# ✅ روت جدید برای ویرایش
+@admin_bp.route('/api/templates/update/<int:template_id>', methods=['POST'])
+@admin_required
+def update_template_api(template_id):
+    try:
+        data = request.get_json()
+        if not data or 'template_str' not in data:
+            return jsonify({'success': False, 'message': 'اطلاعات ارسالی ناقص است.'}), 400
+        
+        update_template(template_id, data['template_str'])
+        return jsonify({'success': True, 'message': 'کانفیگ با موفقیت به‌روزرسانی شد.'})
+    except ValueError as ve:
+        return jsonify({'success': False, 'message': str(ve)}), 400
+    except Exception as e:
+        logger.error(f"API Failed to update template {template_id}: {e}", exc_info=True)
+        return jsonify({'success': False, 'message': f'خطا در به‌روزرسانی: {e}'}), 500
 
 @admin_bp.route('/api/templates/<int:template_id>', methods=['DELETE'])
 @admin_required

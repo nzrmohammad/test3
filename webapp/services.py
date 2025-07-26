@@ -183,6 +183,18 @@ def toggle_template(template_id: int):
     db.toggle_template_status(template_id)
     return True
 
+def update_template(template_id: int, template_str: str):
+    """یک قالب کانفیگ موجود را ویرایش می‌کند."""
+    VALID_PROTOCOLS = ('vless://', 'vmess://', 'trojan://', 'ss://', 'ssr://')
+    if not template_str or not template_str.strip().startswith(VALID_PROTOCOLS):
+        raise ValueError('رشته کانفیگ ارائه شده معتبر نیست.')
+    db.update_template(template_id, template_str.strip())
+    return True
+
+def delete_template(template_id: int):
+    db.delete_template(template_id)
+    return True
+
 def delete_template(template_id: int):
     db.delete_template(template_id)
     return True

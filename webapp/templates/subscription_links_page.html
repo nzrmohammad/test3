@@ -18,7 +18,7 @@
     .config-list { list-style: none; padding: 0; margin: 0; }
     
     .config-item {
-        display: flex; align-items: center; gap: 1rem;
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
         padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-color);
     }
     .config-list li:last-child .config-item { border-bottom: none; }
@@ -27,7 +27,7 @@
         display: flex; align-items: center; gap: 0.75rem;
         flex-grow: 1; min-width: 0;
     }
-    .config-details .fi { font-size: 1.2rem; } /* اندازه آیکون پرچم */
+    .config-details .fi { font-size: 1.2rem; }
     
     .config-name {
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -38,14 +38,30 @@
         width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
         font-size: 1.1rem; border: 1px solid var(--border-color);
         background-color: transparent; color: var(--text-secondary);
-        transition: background-color 0.2s ease;
+        transition: all 0.2s ease;
     }
     .action-btn:hover { background-color: var(--accent-color); color: white; }
 
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1000; }
-    .modal-overlay.show { display: flex; justify-content: center; align-items: center; }
-    .modal-content { background-color: var(--card-bg); padding: 1.5rem; border-radius: var(--border-radius); text-align: center; width: 90%; max-width: 320px; }
-    .modal-content img { display: block; max-width: 100%; height: auto; margin-top: 1rem; border-radius: 8px; }
+    /* استایل‌های مودال */
+    .modal-overlay { 
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background-color: rgba(0,0,0,0.7); z-index: 1000; 
+        justify-content: center; align-items: center;
+        backdrop-filter: blur(4px);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-content { 
+        background-color: var(--card-bg); padding: 1.5rem; border-radius: var(--border-radius); 
+        text-align: center; width: 90%; max-width: 320px;
+    }
+    /* ✅ تغییر: استایل برای نگهدارنده QR Code */
+    #modal-qr-container {
+        padding: 10px;
+        background-color: white;
+        border-radius: 8px;
+        margin-top: 1rem;
+        display: inline-block; /* برای اینکه به اندازه محتوا باشد */
+    }
 </style>
 {% endblock %}
 
@@ -53,79 +69,121 @@
     {% set page_title = 'لینک‌ها و کانفیگ‌ها' %}
     {% include 'partials/_header.html' %}
 
-    {# کارت اول: لینک‌های اشتراک کلی #}
+    <div id="qr-modal" class="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h4 id="modal-title" style="margin-bottom: 1rem; word-break: break-all;"></h4>
+            <div id="modal-qr-container"></div>
+        </div>
+    </div>
+
     <div class="config-card">
         <div class="config-header"><i class="ri-links-line"></i><h3>لینک‌های اشتراک</h3></div>
         <ul class="config-list">
             {% for link in subscription_links %}
-            <li class="config-item">
-                <div class="config-details"><span class="config-name">{{ link.type }}</span></div>
-                <input type="text" value="{{ link.url }}" id="sub-link-{{ loop.index }}" style="position:absolute; left:-9999px;">
-                <div class="config-actions">
-                    <button class="action-btn" title="نمایش QR Code" onclick="showQRCode('{{ link.qr_code_data_uri }}', '{{ link.type }}')"><i class="ri-qr-code-line"></i></button>
-                    <button class="action-btn" title="کپی کردن لینک" onclick="copyToClipboard('#sub-link-{{ loop.index }}', this)"><i class="ri-file-copy-line"></i></button>
+            <li>
+                <div class="config-item">
+                    <div class="config-details"><span class="config-name">{{ link.type }}</span></div>
+                    <input type="text" value="{{ link.url }}" id="sub-link-{{ loop.index }}" style="position:absolute; left:-9999px;">
+                    <div class="config-actions">
+                        <button class="action-btn" title="نمایش QR Code" onclick="showQRCode('{{ link.url }}', '{{ link.type }}')"><i class="ri-qr-code-line"></i></button>
+                        <button class="action-btn" title="کپی کردن لینک" onclick="copyToClipboard('#sub-link-{{ loop.index }}', this)"><i class="ri-file-copy-line"></i></button>
+                    </div>
                 </div>
             </li>
             {% endfor %}
         </ul>
     </div>
 
-    {# کارت دوم: کانفیگ‌های تکی #}
     <div class="config-card">
         <div class="config-header"><i class="ri-server-line"></i><h3>همه کانفیگ‌ها</h3></div>
         <ul class="config-list">
             {% for config in individual_configs %}
-            <li class="config-item">
-                <div class="config-details" title="{{ config.name }}">
-                    {# --- راه‌حل نهایی و صحیح برای نمایش پرچم --- #}
-                    {% if config.country_code %}
-                        <span class="fi fi-{{ config.country_code }}"></span>
-                    {% endif %}
-                    <span class="config-name">{{ config.name }}</span>
-                </div>
-                <input type="text" value="{{ config.url }}" id="config-link-{{ loop.index }}" style="position:absolute; left:-9999px;">
-                <div class="config-actions">
-                    <button class="action-btn" title="نمایش QR Code" onclick="showQRCode('{{ config.qr_code_data_uri }}', '{{ config.name }}')"><i class="ri-qr-code-line"></i></button>
-                    <button class="action-btn" title="کپی کردن کانفیگ" onclick="copyToClipboard('#config-link-{{ loop.index }}', this)"><i class="ri-file-copy-line"></i></button>
+            <li>
+                <div class="config-item">
+                    <div class="config-details" title="{{ config.name }}">
+                        {% if config.country_code %}
+                            <span class="fi fi-{{ config.country_code }}"></span>
+                        {% endif %}
+                        <span class="config-name">{{ config.name }}</span>
+                    </div>
+                    <input type="text" value="{{ config.url }}" id="config-link-{{ loop.index }}" style="position:absolute; left:-9999px;">
+                    <div class="config-actions">
+                        <button class="action-btn" title="نمایش QR Code" onclick="showQRCode('{{ config.url }}', '{{ config.name }}')"><i class="ri-qr-code-line"></i></button>
+                        <button class="action-btn" title="کپی کردن کانفیگ" onclick="copyToClipboard('#config-link-{{ loop.index }}', this)"><i class="ri-file-copy-line"></i></button>
+                    </div>
                 </div>
             </li>
             {% else %}
-            <li class="config-item"><span class="config-name">هیچ کانفیگ فعالی یافت نشد.</span></li>
+            <li><div class="config-item"><span class="config-name">هیچ کانفیگ فعالی یافت نشد.</span></div></li>
             {% endfor %}
         </ul>
     </div>
 
-    <div class="modal-overlay" id="qr-modal" onclick="closeModal()"><div class="modal-content" onclick="event.stopPropagation()"><h4 id="modal-title" style="margin-bottom: 1rem; word-break: break-all;"></h4><img id="modal-qr-image" src="" alt="QR Code"></div></div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// تمام کدهای جاوا اسکریپت برای پرچم حذف شده‌اند و فقط کدهای ضروری باقی مانده‌اند
-function copyToClipboard(elementId, button) {
-    const copyText = document.querySelector(elementId);
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    try {
-        document.execCommand("copy");
+    // ✅ تغییر: تابع نمایش QR Code ساده و بهینه شد
+    function showQRCode(url, title) {
+        const modal = document.getElementById('qr-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const qrcodeContainer = document.getElementById('modal-qr-container');
+        if (!modal || !modalTitle || !qrcodeContainer) return;
+
+        modalTitle.textContent = title;
+        qrcodeContainer.innerHTML = ''; // پاک کردن کد قبلی
+        
+        // ساخت مستقیم QR Code در div مخصوص
+        new QRCode(qrcodeContainer, {
+            text: url,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        modal.classList.add('show');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('qr-modal');
+        if (modal) modal.classList.remove('show');
+    }
+
+    // ✅ تغییر: تابع کپی کردن برای سازگاری با همه مرورگرها بهینه شد
+    function copyToClipboard(elementId, button) {
+        const copyText = document.querySelector(elementId);
+        if (!copyText) return;
+        
         const originalIcon = button.innerHTML;
-        button.innerHTML = '<i class="ri-check-line"></i>';
-        button.style.backgroundColor = 'var(--success-color, #22c55e)';
-        button.style.color = 'white';
-        setTimeout(() => {
-            button.innerHTML = originalIcon;
-            button.style.backgroundColor = '';
-            button.style.color = '';
-        }, 2000);
-    } catch (err) { alert('خطا در کپی کردن متن.'); }
-}
-const modal = document.getElementById('qr-modal');
-const modalTitle = document.getElementById('modal-title');
-const modalImage = document.getElementById('modal-qr-image');
-function showQRCode(qrSrc, title) {
-    modalTitle.textContent = title;
-    modalImage.src = qrSrc;
-    modal.classList.add('show');
-}
-function closeModal() { modal.classList.remove('show'); }
+        const showSuccess = () => {
+            button.innerHTML = '<i class="ri-check-line"></i>';
+            button.style.backgroundColor = 'var(--success-color)';
+            button.style.color = 'white';
+            setTimeout(() => {
+                button.innerHTML = originalIcon;
+                button.style.backgroundColor = '';
+                button.style.color = '';
+            }, 2000);
+        };
+        
+        // روش مدرن (Clipboard API)
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(copyText.value).then(showSuccess).catch(err => {
+                alert('خطا در کپی کردن.');
+            });
+        } else {
+            // روش قدیمی‌تر برای مرورگرهای سازگار
+            try {
+                copyText.select();
+                document.execCommand('copy');
+                showSuccess();
+            } catch (err) {
+                alert('خطا در کپی کردن.');
+            }
+        }
+    }
+
 </script>
 {% endblock %}

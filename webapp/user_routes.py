@@ -2,11 +2,8 @@ from flask import Blueprint, render_template, abort, request, Response, url_for,
 from bot.utils import load_json_file, generate_user_subscription_configs, get_processed_user_data
 from bot.config import ADMIN_SUPPORT_CONTACT
 from bot.database import db
-import qrcode
-import io
 import base64
 import urllib.parse
-import re
 
 
 import logging
@@ -35,6 +32,7 @@ def serve_base64_subscription(uuid):
     if not configs:
         abort(404)
     subscription_content = "\n".join(configs)
+    # Note: base64 encoding is still done here as it's part of the subscription format itself
     encoded_content = base64.b64encode(subscription_content.encode('utf-8')).decode('utf-8')
     return Response(encoded_content, mimetype='text/plain; charset=utf-8')
 
@@ -79,14 +77,7 @@ def subscription_links_page(uuid):
         {"type": "همه کانفیگ‌ها (Base64)", "url": url_for('user.serve_base64_subscription', uuid=uuid, _external=True)}
     ]
 
-    # ساخت QR کد برای همه لینک‌ها
-    for link_list in [subscription_links, individual_configs]:
-        for link in link_list:
-            img = qrcode.make(link['url'])
-            buf = io.BytesIO()
-            img.save(buf, format='PNG')
-            qr_code_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-            link['qr_code_data_uri'] = f"data:image/png;base64,{qr_code_b64}"
+    # ❌ حلقه ساخت QR Code به طور کامل از اینجا حذف شد.
 
     return render_template(
         'subscription_links_page.html',
@@ -97,7 +88,7 @@ def subscription_links_page(uuid):
 
 
 
-@user_bp.route('/user/<string:uuid>/usage')
+@user_bp.route('/<string:uuid>/usage')
 def usage_chart_page(uuid):
     user_data = get_processed_user_data(uuid)
     if not user_data:
@@ -126,7 +117,7 @@ def usage_chart_page(uuid):
     return render_template('usage_chart_page.html', user=user_data, usage_data=chart_data)
 
 
-@user_bp.route('/user/<string:uuid>/buy')
+@user_bp.route('/<string:uuid>/buy')
 def buy_service_page(uuid):
     user_data = get_processed_user_data(uuid)
     if not user_data:
@@ -153,7 +144,7 @@ def buy_service_page(uuid):
     )
 
 
-@user_bp.route('/user/<string:uuid>/tutorials')
+@user_bp.route('/<string:uuid>/tutorials')
 def tutorials_page(uuid):
     user_data = get_processed_user_data(uuid)
     if not user_data:

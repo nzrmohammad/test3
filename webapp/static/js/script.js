@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     let trafficChart = null; // متغیر برای نگهداری نمونه نمودار
 
-    // --- منطق عمومی که در همه صفحات اجرا می‌شود ---
+    // --- منطق عمومی (برای تمام صفحات) ---
     const sidebar = document.querySelector('.sidebar');
     const sidebarToggle = document.getElementById('sidebar-toggle');
     if (sidebar && sidebarToggle) {
@@ -38,12 +38,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+
+    // --- کدهای مخصوص صفحه داشبورد کاربر ---
     function initializeUserDashboard() {
+        // منطق نمایش و کپی کردن UUID
         const copyBtn = document.getElementById('copy-uuid-btn');
         const uuidContainer = document.getElementById('uuid-container');
         if (copyBtn && uuidContainer) {
             const uuidLabel = uuidContainer.querySelector('.uuid-label');
-            const originalLabelText = uuidLabel.textContent; // ذخیره متن اصلی
+            const originalLabelText = uuidLabel.textContent;
             const fullUuid = copyBtn.dataset.uuid;
 
             uuidContainer.addEventListener('mouseenter', () => {
@@ -51,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('uuid-masked').style.display = 'none';
             });
             uuidContainer.addEventListener('mouseleave', () => {
-                uuidLabel.textContent = originalLabelText; // بازیابی متن اصلی
+                uuidLabel.textContent = originalLabelText;
                 document.getElementById('uuid-masked').style.display = 'inline-block';
             });
             copyBtn.addEventListener('click', () => {
@@ -62,59 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
         }
-
-// --- Subscription Link & QR Code Logic ---
-        const copySubBtn = document.getElementById('copy-sub-btn');
-        const showQrBtn = document.getElementById('show-qr-btn');
-        const fullSubLinkInput = document.getElementById('full-sub-link');
-        const subLinkMasked = document.getElementById('sub-link-masked');
-
-        if (subLinkMasked) {
-            subLinkMasked.addEventListener('click', () => {
-                subLinkMasked.style.display = 'none';
-                fullSubLinkInput.style.display = 'block';
-                fullSubLinkInput.select();
-            });
-        }
-
-        if (copySubBtn) {
-            copySubBtn.addEventListener('click', () => {
-                fullSubLinkInput.style.display = 'block'; // Ensure it's visible to copy
-                fullSubLinkInput.select();
-                navigator.clipboard.writeText(fullSubLinkInput.value).then(() => {
-                    const originalIcon = copySubBtn.innerHTML;
-                    copySubBtn.innerHTML = '<i class="ri-check-line"></i>';
-                    setTimeout(() => { copySubBtn.innerHTML = originalIcon; }, 2000);
-                });
-            });
-        }
         
-        const modal = document.getElementById('qr-modal');
-        if (showQrBtn && modal) {
-            const closeBtn = modal.querySelector('.close-button');
-            const qrcodeContainer = document.getElementById('qrcode-container');
-
-            showQrBtn.addEventListener('click', () => {
-                qrcodeContainer.innerHTML = ''; // Clear previous QR code
-                new QRCode(qrcodeContainer, {
-                    text: fullSubLinkInput.value,
-                    width: 256,
-                    height: 256,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-                modal.style.display = 'block';
-            });
-
-            closeBtn.onclick = () => { modal.style.display = 'none'; }
-            window.onclick = (event) => {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            }
-        }
-
+        // منطق نمودار مصرف
         const trafficCard = document.querySelector('.total-traffic-card[data-used-gb]');
         if (trafficCard && typeof ApexCharts !== 'undefined') {
             const used = parseFloat(trafficCard.dataset.usedGb) || 0;
@@ -147,9 +99,10 @@ document.addEventListener('DOMContentLoaded', function() {
             trafficChart.render();
         }
     }
-
+    
+    // --- کدهای مخصوص صفحه داشبورد ادمین ---
     function initializeAdminDashboard() {
-        // ... (کد داشبورد ادمین)
+        // در صورت نیاز، کدهای مخصوص داشبورد ادمین اینجا قرار می‌گیرند
     }
 
     // --- اجرای توابع بر اساس صفحه فعلی ---

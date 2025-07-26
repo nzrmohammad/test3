@@ -450,6 +450,20 @@ class DatabaseManager:
                 [(tpl,) for tpl in templates]
             )
             return cursor.rowcount
+        
+    def update_template(self, template_id: int, new_template_str: str):
+        """محتوای یک قالب کانفیگ مشخص را در دیتابیس به‌روزرسانی می‌کند."""
+        # در اینجا مشکل برطرف شده و از متد صحیح _conn() استفاده می‌شود
+        sql = "UPDATE config_templates SET template_str = ? WHERE id = ?"
+        try:
+            with self._conn() as conn: # <-- مشکل اینجا بود و تصحیح شد
+                cursor = conn.cursor()
+                cursor.execute(sql, (new_template_str, template_id))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Database error in update_template for id={template_id}: {e}")
+            raise
 
     def get_all_config_templates(self) -> list[dict]:
         """تمام الگوهای کانفیگ تعریف شده توسط ادمین را برمی‌گرداند."""
